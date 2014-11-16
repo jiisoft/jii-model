@@ -1,0 +1,30 @@
+{
+  "name": "jii-data",
+  "version": "0.2.1",
+  "description": "Jii Data",
+  "main": "index.js",
+  "author": "Vladimir Kozhin <affka@affka.ru>",
+  "scripts": {
+    "test": "nodeunit tests/unit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jiisoft/jii-data"
+  },
+  "keywords": [
+    "yii",
+    "php",
+    "framework",
+    "javascript"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/jiisoft/jii-data",
+  "bugs": {
+    "url": "https://github.com/jiisoft/jii-data/issues"
+  },
+  "devDependencies": {
+    "jii": "^0.2.1",
+    "require-all": "0.0.8",
+    "nodeunit": "^0.9.0"
+  }
+}
