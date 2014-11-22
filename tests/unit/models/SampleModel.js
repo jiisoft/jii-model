@@ -1,10 +1,10 @@
 /**
  * @class tests.unit.models.SampleModel
- * @extends Jii.data.Model
+ * @extends Jii.base.Model
  */
 Jii.defineClass('tests.unit.models.SampleModel', {
 
-	__extends: Jii.data.Model,
+	__extends: Jii.base.Model,
 
     _attributes: {
         uid: null,

@@ -1,2 +1,2 @@
-jii-data
+jii-validators
 ========

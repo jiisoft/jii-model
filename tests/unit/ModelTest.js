@@ -18,7 +18,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
     },
 
     setterTest: function (test) {
-        _.each(this._getModelInstances(), function (sampleModel) {
+        Jii._.each(this._getModelInstances(), function (sampleModel) {
             // Check insert scenario (set name and description)
             sampleModel.setScenario('insert');
             sampleModel.setAttributes({
@@ -47,7 +47,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
     },
 
     validateTest: function (test) {
-        _.each(this._getModelInstances(), function (sampleModel) {
+        Jii._.each(this._getModelInstances(), function (sampleModel) {
             sampleModel.setScenario('insert');
             sampleModel.set('description', '1234567890+1');
             sampleModel.validate().then(function (isValid) {
@@ -55,19 +55,19 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
                 // Check validation errors
                 test.strictEqual(isValid, false);
                 test.strictEqual(sampleModel.hasErrors(), true);
-                test.strictEqual(_.keys(sampleModel.getErrors()).length, 2);
+                test.strictEqual(Jii._.keys(sampleModel.getErrors()).length, 2);
                 test.strictEqual(sampleModel.getErrors().name.length, 1); // Required error
                 test.strictEqual(sampleModel.getErrors().description.length, 1); // Length error
 
                 // Add custom error
                 sampleModel.addError('uid', 'Error text..');
                 sampleModel.addError('name', 'Error text..');
-                test.strictEqual(_.keys(sampleModel.getErrors()).length, 3);
+                test.strictEqual(Jii._.keys(sampleModel.getErrors()).length, 3);
                 test.strictEqual(sampleModel.getErrors().name.length, 2);
 
                 // Clear errors
                 sampleModel.clearErrors();
-                test.strictEqual(_.keys(sampleModel.getErrors()).length, 0);
+                test.strictEqual(Jii._.keys(sampleModel.getErrors()).length, 0);
             });
         });
 

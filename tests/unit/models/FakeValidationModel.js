@@ -1,10 +1,10 @@
 /**
  * @class tests.unit.models.FakeValidationModel
- * @extends Jii.data.Model
+ * @extends Jii.base.Model
  */
 Jii.defineClass('tests.unit.models.FakeValidationModel', {
 
-	__extends: Jii.data.Model,
+	__extends: Jii.base.Model,
 
     _attributes: {
         foo: null,
