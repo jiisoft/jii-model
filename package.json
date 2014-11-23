@@ -1,7 +1,7 @@
 {
-  "name": "jii-validators",
-  "version": "0.2.1",
-  "description": "Jii Data",
+  "name": "jii-model",
+  "version": "0.3.0",
+  "description": "Jii model",
   "main": "index.js",
   "author": "Vladimir Kozhin <affka@affka.ru>",
   "scripts": {
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jiisoft/jii-validators"
+    "url": "https://github.com/jiisoft/jii-model"
   },
   "keywords": [
     "yii",
@@ -18,12 +18,11 @@
     "javascript"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/jiisoft/jii-validators",
+  "homepage": "https://github.com/jiisoft/jii-model",
   "bugs": {
-    "url": "https://github.com/jiisoft/jii-validators/issues"
+    "url": "https://github.com/jiisoft/jii-model/issues"
   },
   "devDependencies": {
-    "jii": "^0.2.1",
     "require-all": "0.0.8",
     "nodeunit": "^0.9.0"
   }
