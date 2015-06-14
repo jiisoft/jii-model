@@ -1,6 +1,6 @@
 {
   "name": "jii-model",
-  "version": "0.3.4",
+  "version": "0.4.1",
   "description": "Jii model",
   "main": "index.js",
   "author": "Vladimir Kozhin <affka@affka.ru>",
@@ -22,7 +22,7 @@
   "bugs": {
     "url": "https://github.com/jiisoft/jii-model/issues"
   },
-  "devDependencies": {
+  "dependencies": {
     "require-all": "0.0.8"
   },
   "devDependencies": {
