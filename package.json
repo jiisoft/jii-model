@@ -3,6 +3,7 @@
   "version": "0.4.3",
   "description": "Jii model",
   "main": "index.js",
+  "browser": "index-client.js",
   "author": "Vladimir Kozhin <affka@affka.ru>",
   "scripts": {
     "test": "nodeunit tests/unit"
