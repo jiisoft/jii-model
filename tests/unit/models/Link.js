@@ -36,6 +36,10 @@ var self = Jii.defineClass('tests.unit.models.Link', {
                         name: 'articleId',
                         jsType: 'number'
                     }),
+                    dataId: new Jii.sql.ColumnSchema({
+                        name: 'dataId',
+                        jsType: 'number'
+                    }),
                     url: new Jii.sql.ColumnSchema({
                         name: 'url',
                         jsType: 'string'
@@ -52,6 +56,10 @@ var self = Jii.defineClass('tests.unit.models.Link', {
 			return 'category';
 		}
 
-	}
+	},
+
+    getData: function () {
+        return this.hasOne(tests.unit.models.LinkData.className(), {dataId: 'id'});
+    }
 
 });
