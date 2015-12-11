@@ -425,6 +425,50 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
         test.done();
     },
 
+    resetTest: function(test) {
+        var coll;
+        var events = [];
+
+        /**
+         *
+         * @param {Jii.model.CollectionEvent|Jii.model.LinkModelEvent|Jii.model.ChangeEvent} event
+         */
+        var eventsFn = function(event) {
+            Jii._.each(event.added, function(model) {
+                events.push('added-' + model.getPrimaryKey());
+            });
+            Jii._.each(event.removed, function(model) {
+                events.push('removed-' + model.getPrimaryKey());
+            });
+        };
+
+        coll = new Jii.base.Collection([], {modelClass: 'tests.unit.models.User'});
+        coll.add({id: 250, name: 'Ivan'});
+        coll.add({id: 300, name: 'Piter'});
+        coll.on('change', eventsFn);
+
+        events = [];
+        coll.reset(coll.getModels());
+        test.strictEqual(coll.length, 2);
+        test.deepEqual(events, []);
+
+        events = [];
+        coll.reset(coll.at(0));
+        test.strictEqual(coll.length, 1);
+        test.deepEqual(events, ['removed-300']);
+
+        events = [];
+        coll.reset([
+            {id: 300, name: 'Ivan'},
+            {id: 480, name: 'Qqq'},
+            {id: 490, name: 'Www'}
+        ]);
+        test.strictEqual(coll.length, 3);
+        test.deepEqual(events, ['added-300', 'added-480', 'added-490', 'removed-250']);
+
+        test.done();
+    },
+
     /**
      *
      * @param arr

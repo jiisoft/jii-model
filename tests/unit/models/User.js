@@ -21,32 +21,21 @@ var self = Jii.defineClass('tests.unit.models.User', {
 	__static: {
 
         /**
-         * @returns {Jii.sql.TableSchema}
+         * @returns {{}}
          */
-        getTableSchema: function () {
-            return new Jii.sql.TableSchema({
+        modelSchema: function() {
+            return {
                 primaryKey: ['id'],
                 columns: {
-                    id: new Jii.sql.ColumnSchema({
-                        name: 'id',
+                    id: {
                         jsType: 'number',
                         isPrimaryKey: true
-                    }),
-                    name: new Jii.sql.ColumnSchema({
-                        name: 'name',
-                        jsType: 'string'
-                    }),
-                    email: new Jii.sql.ColumnSchema({
-                        name: 'email',
-                        jsType: 'string'
-                    })
+                    },
+                    name: 'string',
+                    email: 'string'
                 }
-            });
-        },
-
-		tableName: function () {
-			return 'user';
-		}
+            };
+        }
 
 	}
 

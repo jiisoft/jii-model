@@ -21,28 +21,20 @@ var self = Jii.defineClass('tests.unit.models.LinkData', {
 	__static: {
 
         /**
-         * @returns {Jii.sql.TableSchema}
+         * @returns {{}}
          */
-        getTableSchema: function () {
-            return new Jii.sql.TableSchema({
+        modelSchema: function() {
+            return {
                 primaryKey: ['id'],
                 columns: {
-                    id: new Jii.sql.ColumnSchema({
-                        name: 'id',
+                    id: {
                         jsType: 'number',
                         isPrimaryKey: true
-                    }),
-                    value: new Jii.sql.ColumnSchema({
-                        name: 'value',
-                        jsType: 'string'
-                    })
+                    },
+                    value: 'string'
                 }
-            });
-        },
-
-		tableName: function () {
-			return 'link_data';
-		}
+            };
+        }
 
 	}
 

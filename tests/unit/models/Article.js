@@ -21,40 +21,24 @@ var self = Jii.defineClass('tests.unit.models.Article', {
 	__static: {
 
         /**
-         * @returns {Jii.sql.TableSchema}
+         * @returns {{}}
          */
-        getTableSchema: function () {
-            return new Jii.sql.TableSchema({
+        modelSchema: function() {
+            return {
                 primaryKey: ['id'],
                 columns: {
-                    id: new Jii.sql.ColumnSchema({
+                    id: {
                         name: 'id',
                         jsType: 'number',
                         isPrimaryKey: true
-                    }),
-                    userId: new Jii.sql.ColumnSchema({
-                        name: 'userId',
-                        jsType: 'number'
-                    }),
-                    title: new Jii.sql.ColumnSchema({
-                        name: 'title',
-                        jsType: 'string'
-                    }),
-                    text: new Jii.sql.ColumnSchema({
-                        name: 'text',
-                        jsType: 'string'
-                    }),
-                    createTime: new Jii.sql.ColumnSchema({
-                        name: 'createTime',
-                        jsType: 'number'
-                    })
+                    },
+                    userId: 'number',
+                    title: 'string',
+                    text: 'string',
+                    createTime: 'number'
                 }
-            });
-        },
-
-		tableName: function () {
-			return 'article';
-		}
+            };
+        }
 
 	},
 

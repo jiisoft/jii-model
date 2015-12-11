@@ -21,40 +21,23 @@ var self = Jii.defineClass('tests.unit.models.Link', {
 	__static: {
 
         /**
-         * @returns {Jii.sql.TableSchema}
+         * @returns {{}}
          */
-        getTableSchema: function () {
-            return new Jii.sql.TableSchema({
+        modelSchema: function() {
+            return {
                 primaryKey: ['id'],
                 columns: {
-                    id: new Jii.sql.ColumnSchema({
-                        name: 'id',
+                    id: {
                         jsType: 'number',
                         isPrimaryKey: true
-                    }),
-                    articleId: new Jii.sql.ColumnSchema({
-                        name: 'articleId',
-                        jsType: 'number'
-                    }),
-                    dataId: new Jii.sql.ColumnSchema({
-                        name: 'dataId',
-                        jsType: 'number'
-                    }),
-                    url: new Jii.sql.ColumnSchema({
-                        name: 'url',
-                        jsType: 'string'
-                    }),
-                    title: new Jii.sql.ColumnSchema({
-                        name: 'title',
-                        jsType: 'string'
-                    })
+                    },
+                    articleId: 'number',
+                    dataId: 'number',
+                    url: 'string',
+                    title: 'string'
                 }
-            });
-        },
-
-		tableName: function () {
-			return 'category';
-		}
+            };
+        }
 
 	},
 
