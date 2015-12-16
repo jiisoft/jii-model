@@ -5,7 +5,16 @@ require('jii');
 
 // Load framework files
 require('./lib/base/ActiveRecord');
+require('./lib/base/Collection');
+require('./lib/base/DataProvider');
 require('./lib/base/Model');
+require('./lib/base/ModelAttributeSchema');
+require('./lib/base/ModelSchema');
+require('./lib/model/ArrayDataProvider');
+require('./lib/model/ChangeAttributeEvent');
+require('./lib/model/ChangeEvent');
+require('./lib/model/CollectionEvent');
+require('./lib/model/LinkModelEvent');
 require('./lib/validators/BooleanValidator');
 require('./lib/validators/CompareValidator');
 require('./lib/validators/DateValidator');
