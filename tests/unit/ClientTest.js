@@ -11,7 +11,7 @@ global.tests = Jii.namespace('tests');
  */
 var self = Jii.defineClass('tests.unit.ClientTest', {
 
-	__extends: Jii.base.UnitTest,
+	__extends: 'Jii.base.UnitTest',
 
     relationTest: function (test) {
         var article = new tests.unit.models.Article();

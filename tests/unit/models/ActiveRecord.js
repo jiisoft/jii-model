@@ -17,7 +17,7 @@ require('jii-ar-sql');
  */
 var self = Jii.defineClass('tests.unit.models.ActiveRecord', {
 
-	__extends: Jii.base.ActiveRecord,
+	__extends: 'Jii.base.ActiveRecord',
 
 	__static: {
 

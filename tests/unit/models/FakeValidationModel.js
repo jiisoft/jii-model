@@ -4,7 +4,7 @@
  */
 Jii.defineClass('tests.unit.models.FakeValidationModel', {
 
-	__extends: Jii.base.Model,
+	__extends: 'Jii.base.Model',
 
     _attributes: {
         foo: null,

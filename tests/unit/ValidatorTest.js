@@ -7,7 +7,7 @@ require('./models/FakeValidationModel');
  */
 var self = Jii.defineClass('tests.unit.ValidatorTest', {
 
-	__extends: Jii.base.UnitTest,
+	__extends: 'Jii.base.UnitTest',
 
     _assertValidation: function(test, validator, values, hasErrors) {
         var model = new tests.unit.models.FakeValidationModel();

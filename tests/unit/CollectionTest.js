@@ -10,7 +10,7 @@ global.tests = Jii.namespace('tests');
  */
 var self = Jii.defineClass('tests.unit.CollectionTest', {
 
-	__extends: Jii.base.UnitTest,
+	__extends: 'Jii.base.UnitTest',
 
     arrayInstanceOfTest: function (test) {
         var collection = new Jii.base.Collection([], {modelClass: false});
