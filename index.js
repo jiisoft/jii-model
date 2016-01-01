@@ -1,5 +1,6 @@
 module.exports = require('jii');
 
+// AUTO-GENERATED Package files list
 require('./lib/base/ActiveRecord.js');
 require('./lib/base/Collection.js');
 require('./lib/base/DataProvider.js');
