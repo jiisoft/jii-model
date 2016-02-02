@@ -3,8 +3,10 @@ module.exports = require('jii');
 // AUTO-GENERATED Package files list
 require('./lib/base/ActiveRecord.js');
 require('./lib/base/Collection.js');
+require('./lib/base/CollectionAdapterInterface.js');
 require('./lib/base/DataProvider.js');
 require('./lib/base/Model.js');
+require('./lib/base/ModelAdapterInterface.js');
 require('./lib/base/ModelAttributeSchema.js');
 require('./lib/base/ModelSchema.js');
 require('./lib/model/ArrayDataProvider.js');

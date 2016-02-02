@@ -383,6 +383,28 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         test.deepEqual(events, []);
 
         test.done();
+    },
+
+    proxyTest: function(test) {
+        var article = new tests.unit.models.Article({
+            id: 18,
+            title: 'Test title'
+        });
+
+        var obj = article.cloneProxy({
+            instance: function(original) {
+                return {};
+            },
+            setValues: function(original, proxy, values) {
+                Jii._.extend(proxy, values)
+            }
+        });
+        test.deepEqual(obj, article.getAttributes());
+
+        article.set('title', 'Changed title');
+        test.strictEqual(obj.title, 'Changed title');
+
+        test.done();
     }
 
 });

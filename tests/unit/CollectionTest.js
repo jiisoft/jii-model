@@ -469,6 +469,158 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
         test.done();
     },
 
+
+    cloneTest: function (test) {
+        var root = new Jii.base.Collection([], {modelClass: 'tests.unit.models.Article'});
+        root.add({id: 55, title: 'Test article'});
+
+        var child = root.createChildCollection();
+        test.strictEqual(child.length, 1);
+        test.strictEqual(child.at(0).get('id'), 55);
+
+        // Add to root
+        root.add({id: 66, title: 'Second article'});
+        test.strictEqual(child.length, 2);
+        test.strictEqual(child.at(0).get('id'), 55);
+        test.strictEqual(child.at(1).get('id'), 66);
+
+        // Remove from root
+        root.remove(55);
+        test.strictEqual(child.length, 1);
+        test.strictEqual(child.at(0).get('id'), 66);
+
+        // Add to child
+        child.add({id: 77, title: 'Third article'});
+        test.strictEqual(root.length, 2);
+        test.strictEqual(root.at(1).get('id'), 77);
+
+        // Remove from child
+        child.remove(66);
+        test.strictEqual(root.length, 1);
+        test.strictEqual(root.at(0).get('id'), 77);
+
+        test.done();
+    },
+
+    filterTest: function(test) {
+        var root = new Jii.base.Collection([], {modelClass: 'tests.unit.models.Article'});
+        root.add({id: 55, title: 'aaa bbb'});
+        root.add({id: 66, title: 'bbb ccc'});
+        root.add({id: 77, title: 'ccc'});
+        test.strictEqual(root.length, 3);
+
+        var child = root.createChildCollection();
+        test.strictEqual(child.length, 3);
+
+        child.setFilter(function(model) {
+            return model.get('title').indexOf('bbb') !== -1;
+        });
+        test.strictEqual(root.length, 3);
+        test.strictEqual(child.length, 2);
+
+        root.add({id: 88, title: 'ddd'});
+        test.strictEqual(root.length, 4);
+        test.strictEqual(child.length, 2);
+
+        root.add({id: 99, title: 'zzz bbb'});
+        test.strictEqual(root.length, 5);
+        test.strictEqual(child.length, 3);
+
+        child.remove(99);
+        test.strictEqual(root.length, 4);
+        test.strictEqual(child.length, 2);
+
+        test.done();
+    },
+
+    subFilterTest: function(test) {
+        var root = new Jii.base.Collection([], {modelClass: 'tests.unit.models.Article'});
+        root.add({id: 55, title: 'aaa bbb'});
+        root.add({id: 66, title: 'bbb ccc'});
+        root.add({id: 77, title: 'ccc ddd'});
+        test.strictEqual(root.length, 3);
+
+        var child1 = root.createChildCollection();
+        child1.setFilter(function(model) {
+            return model.get('title').indexOf('bbb') !== -1;
+        });
+
+        var child2 = child1.createChildCollection();
+        child2.setFilter(function(model) {
+            return model.get('title').indexOf('ccc') !== -1;
+        });
+
+        test.strictEqual(root.length, 3);
+        test.strictEqual(child1.length, 2);
+        test.strictEqual(child2.length, 1);
+
+        child1.add({id: 88, title: 'ccc'});
+        test.strictEqual(root.length, 4);
+        test.strictEqual(child1.length, 2);
+        test.strictEqual(child2.length, 1);
+
+        child1.setFilter(null);
+        test.strictEqual(root.length, 4);
+        test.strictEqual(child1.length, 4);
+        test.strictEqual(child2.length, 3);
+
+        child1.get(66).set('title', 'zzz');
+        child1.refreshFilter();
+        test.strictEqual(root.length, 4);
+        test.strictEqual(child1.length, 4);
+        test.strictEqual(child2.length, 2);
+
+        test.done();
+    },
+
+    proxyTest: function(test) {
+        var coll = new Jii.base.Collection([], {modelClass: 'tests.unit.models.Article'});
+        coll.add({id: 55, title: 'aaa bbb'});
+
+        var modelAdapter = {
+            instance: function(original) {
+                return {};
+            },
+            setValues: function(original, proxy, values) {
+                Jii._.extend(proxy, values)
+            }
+        };
+
+        var cloned = coll.cloneProxy({
+            instance: function(original) {
+                return [];
+            },
+            add: function(original, cloned, models) {
+                cloned.push.apply(cloned, Jii._.map(models, function(model) {
+                    return model.cloneProxy(modelAdapter);
+                }));
+            },
+            remove: function(original, cloned, models) {
+                Jii._.each(models, function(model) {
+                    Jii._.each(cloned, function(obj, index) {
+                        if (model.getPrimaryKey() === obj.id) {
+                            cloned.splice(index, 1);
+                        }
+                    });
+                });
+            }
+        });
+        test.deepEqual(cloned.length, 1);
+        test.deepEqual(cloned[0], coll.at(0).getAttributes());
+
+        coll.at(0).set('title', 'ccc ddd');
+        test.strictEqual(cloned[0].title, 'ccc ddd');
+
+        coll.remove(coll.at(0));
+        test.deepEqual(cloned.length, 0);
+
+        coll.add({id: 55, title: 'zzz'});
+        test.deepEqual(cloned.length, 1);
+        test.strictEqual(cloned[0].title, 'zzz');
+
+        test.done();
+    },
+
     /**
      *
      * @param arr
