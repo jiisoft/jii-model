@@ -586,13 +586,13 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
             }
         };
 
-        var cloned = coll.cloneProxy({
+        var cloned = coll.createProxy({
             instance: function(original) {
                 return [];
             },
             add: function(original, cloned, models) {
                 cloned.push.apply(cloned, Jii._.map(models, function(model) {
-                    return model.cloneProxy(modelAdapter);
+                    return model.createProxy(modelAdapter);
                 }));
             },
             remove: function(original, cloned, models) {

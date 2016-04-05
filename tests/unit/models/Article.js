@@ -14,7 +14,7 @@ require('./ActiveRecord.js');
  * @class tests.unit.models.Article
  * @extends Jii.base.ActiveRecord
  */
-var self = Jii.defineClass('tests.unit.models.Article', {
+Jii.defineClass('tests.unit.models.Article', {
 
 	__extends: 'Jii.base.ActiveRecord',
 

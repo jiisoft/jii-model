@@ -367,7 +367,6 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         article.set('links[0].data.value', 'upd 1');
         test.deepEqual(events, ['value']);
 
-
         // Sub-collection, change:key.subKey any, not exists: change:links.url.data (off)
         article = new tests.unit.models.Article();
         events = [];
@@ -391,7 +390,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
             title: 'Test title'
         });
 
-        var obj = article.cloneProxy({
+        var obj = article.createProxy({
             instance: function(original) {
                 return {};
             },
