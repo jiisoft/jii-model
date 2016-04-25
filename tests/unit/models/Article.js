@@ -38,16 +38,28 @@ Jii.defineClass('tests.unit.models.Article', {
                     createTime: 'number'
                 }
             };
+        },
+
+        tableName: function() {
+            return 'articles';
         }
 
 	},
 
 	getUser: function () {
-		return this.hasOne(tests.unit.models.User.className(), {userId: 'id'});
+		return this.hasOne(tests.unit.models.User.className(), {id: 'userId'});
 	},
 
 	getLinks: function () {
 		return this.hasMany(tests.unit.models.Link.className(), {articleId: 'id'});
-	}
+	},
+
+	getLinksJunction: function () {
+		return this.hasMany(tests.unit.models.LinkJunction.className(), {articleId: 'id'});
+	},
+
+    getLinksVia: function () {
+        return this.hasMany(tests.unit.models.Link.className(), {id: 'linkId'}).via('linksJunction');
+    }
 
 });

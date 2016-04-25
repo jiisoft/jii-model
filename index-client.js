@@ -13,7 +13,6 @@ require('./lib/model/ArrayDataProvider.js');
 require('./lib/model/ChangeAttributeEvent.js');
 require('./lib/model/ChangeEvent.js');
 require('./lib/model/CollectionEvent.js');
-require('./lib/model/LinkModelEvent.js');
 require('./lib/validators/BooleanValidator.js');
 require('./lib/validators/CompareValidator.js');
 require('./lib/validators/DateValidator.js');

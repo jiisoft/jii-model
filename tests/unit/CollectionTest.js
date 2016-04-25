@@ -380,13 +380,11 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
 
         /**
          *
-         * @param {Jii.model.CollectionEvent|Jii.model.LinkModelEvent|Jii.model.ChangeEvent} event
+         * @param {Jii.model.CollectionEvent|Jii.model.ChangeEvent} event
          */
         var eventsFn = function(event) {
             if (event instanceof Jii.model.ChangeEvent) {
                 events.push.apply(events, Jii._.keys(event.changedAttributes));
-            } else if (event instanceof Jii.model.LinkModelEvent) {
-                events.push(event.relationName);
             } else if (event instanceof Jii.model.CollectionEvent) {
                 Jii._.each(event.added, function(model) {
                     events.push('added-' + model.getPrimaryKey());
@@ -431,7 +429,7 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
 
         /**
          *
-         * @param {Jii.model.CollectionEvent|Jii.model.LinkModelEvent|Jii.model.ChangeEvent} event
+         * @param {Jii.model.CollectionEvent|Jii.model.ChangeEvent} event
          */
         var eventsFn = function(event) {
             Jii._.each(event.added, function(model) {
@@ -474,7 +472,7 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
         var root = new Jii.base.Collection([], {modelClass: 'tests.unit.models.Article'});
         root.add({id: 55, title: 'Test article'});
 
-        var child = root.createChildCollection();
+        var child = root.createChild();
         test.strictEqual(child.length, 1);
         test.strictEqual(child.at(0).get('id'), 55);
 
@@ -509,7 +507,7 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
         root.add({id: 77, title: 'ccc'});
         test.strictEqual(root.length, 3);
 
-        var child = root.createChildCollection();
+        var child = root.createChild();
         test.strictEqual(child.length, 3);
 
         child.setFilter(function(model) {
@@ -540,12 +538,12 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
         root.add({id: 77, title: 'ccc ddd'});
         test.strictEqual(root.length, 3);
 
-        var child1 = root.createChildCollection();
+        var child1 = root.createChild();
         child1.setFilter(function(model) {
             return model.get('title').indexOf('bbb') !== -1;
         });
 
-        var child2 = child1.createChildCollection();
+        var child2 = child1.createChild();
         child2.setFilter(function(model) {
             return model.get('title').indexOf('ccc') !== -1;
         });
@@ -617,6 +615,55 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
         coll.add({id: 55, title: 'zzz'});
         test.deepEqual(cloned.length, 1);
         test.strictEqual(cloned[0].title, 'zzz');
+
+        test.done();
+    },
+
+    lazyEventOffTest: function(test) {
+        var coll;
+        var events = [];
+
+        /**
+         *
+         * @param {Jii.model.CollectionEvent|Jii.model.ChangeEvent} event
+         */
+        var eventsFn = function(event) {
+            if (event instanceof Jii.model.ChangeEvent) {
+                events.push.apply(events, Jii._.keys(event.changedAttributes));
+            } else if (event instanceof Jii.model.CollectionEvent) {
+                Jii._.each(event.added, function(model) {
+                    events.push('added-' + model.getPrimaryKey());
+                });
+                Jii._.each(event.removed, function(model) {
+                    events.push('removed-' + model.getPrimaryKey());
+                });
+            }
+        };
+
+        var user = new tests.unit.models.User({
+            id: 288,
+            name: 'Ivan'
+        });
+
+        // change
+        coll = new Jii.base.Collection([], {modelClass: 'tests.unit.models.User'});
+        coll.on('change change:name', eventsFn);
+
+        events = [];
+        coll.add(user);
+        test.deepEqual(events, ['added-288']);
+
+        events = [];
+        user.set('name', 'Boob');
+        test.deepEqual(events, ['name']);
+
+        events = [];
+        coll.remove(user);
+        test.deepEqual(events, ['removed-288']);
+
+        events = [];
+        user.set('name', 'John');
+        test.deepEqual(events, []);
 
         test.done();
     },

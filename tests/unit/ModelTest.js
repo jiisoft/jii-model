@@ -3,6 +3,7 @@ require('./models/SampleModel');
 require('./models/Article');
 require('./models/User');
 require('./models/Link');
+require('./models/LinkJunction');
 require('./models/LinkData');
 
 global.tests = Jii.namespace('tests');
@@ -132,13 +133,13 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
 
         /**
          *
-         * @param {Jii.model.ChangeEvent|Jii.model.LinkModelEvent} event
+         * @param {Jii.model.ChangeEvent|Jii.model.ChangeAttributeEvent} event
          */
         var eventsFn = function(event) {
-            if (event instanceof Jii.model.ChangeEvent) {
+            if (event instanceof Jii.model.ChangeAttributeEvent) {
+                events.push(event.attribute);
+            } else if (event instanceof Jii.model.ChangeEvent) {
                 events.push.apply(events, Jii._.keys(event.changedAttributes));
-            } else if (event instanceof Jii.model.LinkModelEvent) {
-                events.push(event.relationName);
             }
         };
 
@@ -162,7 +163,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         // Sub-model, change, on not exists: change:user
         article = new tests.unit.models.Article();
         events = [];
-        article.on('change:user link:user', eventsFn);
+        article.on('change:user', eventsFn);
         article.set({
             user: {
                 id: 524,
@@ -201,18 +202,19 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         // Sub-model, change:key, not exists: change:user.name
         article = new tests.unit.models.Article();
         events = [];
-        article.on('link:user change:user.email', eventsFn);
+        article.on('change:user change:user.email', eventsFn);
         article.set({
             user: {
                 id: 524,
                 email: 'john@example.com'
             }
         });
+
         test.deepEqual(events, ['user']);
         article.set('user.email', 'piter@gmail.com');
-        test.deepEqual(events, ['user', 'email']);
+        test.deepEqual(events, ['user', 'email', 'email']);
         events = [];
-        article.off('change:user.email', eventsFn);
+        article.off('change:user change:user.email', eventsFn);
         article.set('user.email', 'qweqe@mail.ru');
         test.deepEqual(events, []);
 
@@ -225,13 +227,13 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
 
         /**
          *
-         * @param {Jii.model.CollectionEvent|Jii.model.LinkModelEvent|Jii.model.ChangeEvent} event
+         * @param {Jii.model.CollectionEvent|Jii.model.ChangeAttributeEvent|Jii.model.ChangeEvent} event
          */
         var eventsFn = function(event) {
-            if (event instanceof Jii.model.ChangeEvent) {
+            if (event instanceof Jii.model.ChangeAttributeEvent) {
+                events.push(event.attribute);
+            } else if (event instanceof Jii.model.ChangeEvent) {
                 events.push.apply(events, Jii._.keys(event.changedAttributes));
-            } else if (event instanceof Jii.model.LinkModelEvent) {
-                events.push(event.relationName);
             } else if (event instanceof Jii.model.CollectionEvent) {
                 Jii._.each(event.added, function(model) {
                     events.push('added-' + model.getPrimaryKey());
@@ -402,6 +404,235 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
 
         article.set('title', 'Changed title');
         test.strictEqual(obj.title, 'Changed title');
+
+        test.done();
+    },
+
+    manyManyBindingEventsTest: function(test) {
+        var events = [];
+        /**
+         *
+         * @param {Jii.model.CollectionEvent|Jii.model.ChangeAttributeEvent|Jii.model.ChangeEvent} event
+         */
+        var eventsFn = function(event) {
+            if (event instanceof Jii.model.ChangeAttributeEvent) {
+                events.push(event.attribute);
+            } else if (event instanceof Jii.model.ChangeEvent) {
+                events.push.apply(events, Jii._.keys(event.changedAttributes));
+            } else if (event instanceof Jii.model.CollectionEvent) {
+                Jii._.each(event.added, function(model) {
+                    events.push('added-' + JSON.stringify(model.getPrimaryKey()));
+                });
+                Jii._.each(event.removed, function(model) {
+                    events.push('removed-' + JSON.stringify(model.getPrimaryKey()));
+                });
+            }
+        };
+
+        var article = new tests.unit.models.Article({
+            id: 4,
+            title: 'My article'
+        });
+        test.strictEqual(article.get('title'), 'My article');
+
+        article.on('change:linksJunction.link', eventsFn);
+
+        article.get('linksJunction').add({
+            articleId: 4,
+            linkId: 82
+        });
+        article.get('linksJunction[0]').set('link', {
+            id: 82,
+            url: 'http://example.com'
+        });
+        test.strictEqual(article.get('linksJunction[0].link.url'), 'http://example.com');
+        test.deepEqual(events, ['link']);
+
+        test.done();
+    },
+
+    hasOneRelationChangeTest: function(test) {
+        var events = [];
+        /**
+         *
+         * @param {Jii.model.CollectionEvent|Jii.model.ChangeAttributeEvent|Jii.model.ChangeEvent} event
+         */
+        var eventsFn = function(event) {
+            if (event instanceof Jii.model.ChangeAttributeEvent) {
+                events.push(event.attribute);
+            } else if (event instanceof Jii.model.ChangeEvent) {
+                events.push.apply(events, Jii._.keys(event.changedAttributes));
+            }
+        };
+
+        var article = new tests.unit.models.Article({
+            id: 4,
+            userId: 10,
+            title: 'My article'
+        });
+        var user = new tests.unit.models.User({
+            id: 10,
+            name: 'Ivan'
+        });
+
+        article.on('change:user', eventsFn);
+        article.set('user', user);
+        user.set('name', 'Bond');
+        test.deepEqual(events, ['user', 'name']);
+
+        article.set('user', null);
+        test.deepEqual(events, ['user', 'name', 'user']);
+
+        user.set('name', 'Bobrik');
+        test.deepEqual(events, ['user', 'name', 'user']);
+
+        article.set('user', user);
+        user.set('name', 'John');
+        test.deepEqual(events, ['user', 'name', 'user', 'user', 'name']);
+
+        test.done();
+    },
+
+    hasOneWithRootCollectionTest: function(test) {
+        var events = [];
+        /**
+         *
+         * @param {Jii.model.CollectionEvent|Jii.model.ChangeAttributeEvent|Jii.model.ChangeEvent} event
+         */
+        var eventsFn = function(event) {
+            if (event instanceof Jii.model.ChangeAttributeEvent) {
+                events.push(event.attribute);
+            } else if (event instanceof Jii.model.ChangeEvent) {
+                events.push.apply(events, Jii._.keys(event.changedAttributes));
+            }
+        };
+
+        var rootCollections = {};
+        tests.unit.models.Article.getDb = tests.unit.models.User.getDb = function() {
+            return {
+                getRootCollection: function(name) {
+                    rootCollections[name] = rootCollections[name] || new Jii.base.Collection([], {modelClass: name});
+                    return rootCollections[name];
+                },
+                getSchema: function() {
+                    return {
+                        getFilterBuilder: function() {
+                            return new Jii.sql.FilterBuilder();
+                        }
+                    }
+                }
+            }
+        }
+
+        var article = new tests.unit.models.Article({
+            id: 4,
+            userId: 10,
+            title: 'My article'
+        });
+        var user = new tests.unit.models.User({
+            id: 10,
+            name: 'Ivan'
+        });
+
+        rootCollections = {};
+        article.on('change:user', eventsFn);
+        test.deepEqual(Jii._.keys(rootCollections), ['tests.unit.models.User']);
+
+        // fetch from root, then add
+        test.strictEqual(article.get('user'), null);
+        rootCollections['tests.unit.models.User'].add(user);
+        test.strictEqual(article.get('user') === user, true);
+        test.deepEqual(events, ['user']);
+
+        // change in root
+        user.set('id', 11);
+        test.deepEqual(events, ['user', 'user']);
+        test.strictEqual(article.get('user'), null);
+
+        // Revert back model
+        events = [];
+        rootCollections['tests.unit.models.User'].add({
+            id: 10,
+            name: 'Qwerty'
+        });
+        test.strictEqual(article.get('user.name'), 'Qwerty');
+        test.strictEqual(article.get('user.id'), 10);
+        test.deepEqual(events, ['user']);
+
+        test.done();
+    },
+
+    hasManyWithRootCollectionTest: function(test) {
+        var events = [];
+        /**
+         *
+         * @param {Jii.model.CollectionEvent|Jii.model.ChangeAttributeEvent|Jii.model.ChangeEvent} event
+         */
+        var eventsFn = function(event) {
+            if (event instanceof Jii.model.ChangeAttributeEvent) {
+                events.push(event.attribute);
+            } else if (event instanceof Jii.model.ChangeEvent) {
+                events.push.apply(events, Jii._.keys(event.changedAttributes));
+            } else if (event instanceof Jii.model.CollectionEvent) {
+                Jii._.each(event.added, function(model) {
+                    events.push('added-' + JSON.stringify(model.getPrimaryKey()));
+                });
+                Jii._.each(event.removed, function(model) {
+                    events.push('removed-' + JSON.stringify(model.getPrimaryKey()));
+                });
+            }
+        };
+
+        var rootCollections = {};
+        tests.unit.models.Article.getDb = tests.unit.models.Link.getDb = function() {
+            return {
+                getRootCollection: function(name) {
+                    rootCollections[name] = rootCollections[name] || new Jii.base.Collection([], {modelClass: name});
+                    return rootCollections[name];
+                },
+                getSchema: function() {
+                    return {
+                        getFilterBuilder: function() {
+                            return new Jii.sql.FilterBuilder();
+                        }
+                    }
+                }
+            }
+        }
+
+        var article = new tests.unit.models.Article({
+            id: 4,
+            userId: 10,
+            title: 'My article'
+        });
+        article.on('change:links', eventsFn);
+        rootCollections['tests.unit.models.Link'].set([
+            {
+                id: 10,
+                articleId: 4,
+                url: 'http://example.ru'
+            },
+            {
+                id: 11,
+                articleId: 4,
+                url: 'http://example.com'
+            },
+            {
+                id: 12,
+                articleId: 5,
+                url: 'http://example.net'
+            }
+        ], {
+            modelClass: 'tests.unit.models.Link'
+        })
+
+        test.strictEqual(article.get('links[0].url'), 'http://example.ru');
+        test.deepEqual(events, ['added-10', 'added-11']);
+
+        events = [];
+        article.get('links').remove(10);
+        test.strictEqual(article.get('links[0].url'), 'http://example.com');
+        test.deepEqual(events, ['removed-10']);
 
         test.done();
     }

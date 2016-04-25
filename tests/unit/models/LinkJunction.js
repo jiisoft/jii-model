@@ -11,10 +11,10 @@ var tests = Jii.namespace('tests');
 require('./ActiveRecord.js');
 
 /**
- * @class tests.unit.models.User
+ * @class tests.unit.models.LinkJunction
  * @extends Jii.base.ActiveRecord
  */
-var self = Jii.defineClass('tests.unit.models.User', {
+var self = Jii.defineClass('tests.unit.models.LinkJunction', {
 
 	__extends: 'Jii.base.ActiveRecord',
 
@@ -25,22 +25,18 @@ var self = Jii.defineClass('tests.unit.models.User', {
          */
         modelSchema: function() {
             return {
-                primaryKey: ['id'],
+                primaryKey: ['articleId', 'linkId'],
                 columns: {
-                    id: {
-                        jsType: 'number',
-                        isPrimaryKey: true
-                    },
-                    name: 'string',
-                    email: 'string'
+                    articleId: 'number',
+                    linkId: 'number'
                 }
             };
-        },
-
-        tableName: function() {
-            return 'users';
         }
 
-	}
+	},
+
+    getLink: function () {
+        return this.hasOne(tests.unit.models.Link.className(), {id: 'linkId'});
+    }
 
 });
