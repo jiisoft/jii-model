@@ -533,6 +533,10 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
             id: 10,
             name: 'Ivan'
         });
+        var user2 = new tests.unit.models.User({
+            id: 10,
+            name: 'Qwerty'
+        });
 
         rootCollections = {};
         article.on('change:user', eventsFn);
@@ -549,15 +553,22 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         test.deepEqual(events, ['user', 'user']);
         test.strictEqual(article.get('user'), null);
 
+        // Check unsubscribe
+        events = [];
+        user.set('name', 'Bober');
+        test.deepEqual(events, []);
+
         // Revert back model
         events = [];
-        rootCollections['tests.unit.models.User'].add({
-            id: 10,
-            name: 'Qwerty'
-        });
+        rootCollections['tests.unit.models.User'].add(user2);
         test.strictEqual(article.get('user.name'), 'Qwerty');
         test.strictEqual(article.get('user.id'), 10);
         test.deepEqual(events, ['user']);
+
+        // Check unsubscribe
+        events = [];
+        user2.set('name', 'Kate');
+        test.deepEqual(events, ['name']);
 
         test.done();
     },
@@ -633,6 +644,35 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         article.get('links').remove(10);
         test.strictEqual(article.get('links[0].url'), 'http://example.com');
         test.deepEqual(events, ['removed-10']);
+
+        test.done();
+    },
+
+    attributesTreeTest: function(test) {
+        var data = {
+            id: 4,
+            title: 'My article',
+            user: {
+                id: 41,
+                name: 'Piter'
+            },
+            links: [
+                {id: 10, articleId: 4, url: 'u1.com'},
+                {id: 11, articleId: 4, url: 'u2.com'}
+            ]
+        };
+        var article = new tests.unit.models.Article(data);
+        article.get('links').sortBy(function(m){ return m.getPrimaryKey(); });
+
+        test.deepEqual(article.getAttributesTree([
+            'id',
+            'title',
+            'user.id',
+            'user.name',
+            'links.id',
+            'links.articleId',
+            'links.url'
+        ]), data);
 
         test.done();
     }

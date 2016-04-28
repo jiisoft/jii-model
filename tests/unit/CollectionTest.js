@@ -668,6 +668,44 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
         test.done();
     },
 
+    filterSubscribeTest: function(test) {
+        tests.unit.models.Article.getDb = function() {
+            return {
+                getSchema: function() {
+                    return {
+                        getFilterBuilder: function() {
+                            return new Jii.sql.FilterBuilder();
+                        }
+                    }
+                }
+            }
+        }
+
+        var coll = new Jii.base.Collection([], {modelClass: 'tests.unit.models.Article'});
+        var article = new tests.unit.models.Article({id: 44, title: 'q2', text: 'ss'});
+        coll.add({id: 55, title: 'q1', text: 'ww'});
+        coll.add(article);
+
+        var child = coll.createChild();
+        child.setFilter((new Jii.sql.Query()).where({title: 'q3'}));
+        test.strictEqual(child.length, 0);
+
+        coll.add({id: 66, title: 'q3', text: 'ww'});
+        test.strictEqual(child.length, 1);
+
+        child.setFilter((new Jii.sql.Query()).where({text: 'ww'}));
+        test.strictEqual(child.length, 2);
+
+        child.on('change:text', function(){console.log(9999)})
+        article.set('text', 'ww');
+        test.strictEqual(child.length, 3);
+
+        coll.add({id: 77, title: 'q3', text: 'ww'});
+        test.strictEqual(child.length, 4);
+
+        test.done();
+    },
+
     /**
      *
      * @param arr
