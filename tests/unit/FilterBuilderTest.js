@@ -105,6 +105,7 @@ var self = Jii.defineClass('tests.unit.FilterBuilderTest', {
 
         // hasOne
         var hasOneQuery = article.getUser();
+        filterBuilder.prepare(hasOneQuery);
         test.deepEqual(filterBuilder.attributes(hasOneQuery), ['id']);
         test.strictEqual(filterBuilder.filter({id: 49}, hasOneQuery), false);
         test.strictEqual(filterBuilder.filter({id: 50}, hasOneQuery), true);
@@ -112,6 +113,40 @@ var self = Jii.defineClass('tests.unit.FilterBuilderTest', {
         //var hasManyQuery = article.getLinks();
         //console.log(filterBuilder.attributes(hasManyQuery), hasManyQuery.getWhere());
 
+
+        test.done();
+    },
+
+    relationTimeTest: function(test) {
+        var filterBuilder = new Jii.sql.FilterBuilder();
+        tests.unit.models.Article.getDb = function() {
+            return {
+                getSchema: function() {
+                    return {
+                        getFilterBuilder: function() {
+                            return filterBuilder;
+                        }
+                    }
+                }
+            }
+        }
+
+        var collection = new Jii.base.Collection([], {modelClass: tests.unit.models.Article});
+        for (var i = 0; i < 1000; i++) {
+            collection.add({
+                id: i,
+                userId: i+30,
+                title: 't i t l e ' + i
+            });
+        }
+
+        var query = (new Jii.sql.Query())
+            .where(['in', 'id', 50]);
+        collection.setFilter(query);
+
+        console.time('filter');
+            collection.refreshFilter();
+        console.timeEnd('filter');
 
         test.done();
     }

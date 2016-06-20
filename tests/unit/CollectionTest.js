@@ -271,7 +271,7 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
 
         // Add - always add
         coll = new Jii.base.Collection([], {modelClass: 'tests.unit.models.User'});
-        coll.add({ id: 519, name: 'John' });
+        coll.add({ id: 518, name: 'John' });
         test.strictEqual(coll.length, 1);
         coll.add({ id: 519, name: 'Fred' });
         test.strictEqual(coll.length, 2);
@@ -285,12 +285,12 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
 
         // Set - all by one id
         coll.set({ id: 519, name: 'Ivan' });
-        test.strictEqual(coll.at(0).get('name'), 'Ivan');
+        test.strictEqual(coll.at(0).get('name'), 'John');
         test.strictEqual(coll.at(1).get('name'), 'Ivan');
 
         // Remove - all by one id
         coll.remove({ id: 519 });
-        test.strictEqual(coll.length, 1);
+        test.strictEqual(coll.length, 2);
 
         // Set - overwrite attributes
         coll = new Jii.base.Collection([], {modelClass: tests.unit.models.User});
