@@ -5,21 +5,17 @@
 
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
-
-require('./Validator');
+var _isString = require('lodash/isString');
+var Validator = require('./Validator');
 
 /**
  * @class Jii.validators.EmailValidator
  * @extends Jii.validators.Validator
  */
-Jii.defineClass('Jii.validators.EmailValidator', /** @lends Jii.validators.EmailValidator.prototype */{
+module.exports = Jii.defineClass('Jii.validators.EmailValidator', /** @lends Jii.validators.EmailValidator.prototype */{
 
-	__extends: 'Jii.validators.Validator',
+    __extends: Validator,
 
 	pattern: /^[a-zA-Z0-9!#$%&\'*+\\/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&\'*+\\/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/,
 
@@ -42,7 +38,7 @@ Jii.defineClass('Jii.validators.EmailValidator', /** @lends Jii.validators.Email
     },
 
     validateValue(value) {
-        if (!Jii._.isString(value) || value.length > 320) {
+        if (!_isString(value) || value.length > 320) {
             return false;
         }
 

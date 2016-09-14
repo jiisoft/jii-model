@@ -5,21 +5,17 @@
 
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
-
-require('./Validator');
+var _isRegExp = require('lodash/isRegExp');
+var Validator = require('./Validator');
 
 /**
  * @class Jii.validators.RegularExpressionValidator
  * @extends Jii.validators.Validator
  */
-Jii.defineClass('Jii.validators.RegularExpressionValidator', /** @lends Jii.validators.RegularExpressionValidator.prototype */{
+module.exports = Jii.defineClass('Jii.validators.RegularExpressionValidator', /** @lends Jii.validators.RegularExpressionValidator.prototype */{
 
-	__extends: 'Jii.validators.Validator',
+    __extends: Validator,
 
 	pattern: null,
 
@@ -28,7 +24,7 @@ Jii.defineClass('Jii.validators.RegularExpressionValidator', /** @lends Jii.vali
     init() {
         this.__super();
 
-        if (!Jii._.isRegExp(this.pattern)) {
+        if (!_isRegExp(this.pattern)) {
             throw new Jii.exceptions.ApplicationException('The `pattern` property must be set.');
         }
 

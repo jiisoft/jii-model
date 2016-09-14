@@ -5,19 +5,16 @@
 
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
+var Event = require('jii/base/Event');
 
 /**
  * @class Jii.model.CollectionEvent
  * @extends Jii.base.Event
  */
-Jii.defineClass('Jii.model.CollectionEvent', /** @lends Jii.model.CollectionEvent.prototype */{
+module.exports = Jii.defineClass('Jii.model.CollectionEvent', /** @lends Jii.model.CollectionEvent.prototype */{
 
-	__extends: 'Jii.base.Event',
+	__extends: Event,
 
     /**
      *

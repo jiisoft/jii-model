@@ -5,11 +5,13 @@
 
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
+var _isString = require('lodash/isString');
+var _isEmpty = require('lodash/isEmpty');
+var _clone = require('lodash/clone');
+var _map = require('lodash/map');
+var _keys = require('lodash/keys');
+var DataProvider = require('jii-model/base/DataProvider');
 
 /**
  * ArrayDataProvider implements a data provider based on a data array.
@@ -30,9 +32,9 @@ var Jii = require('jii');
  * @class Jii.base.ArrayDataProvider
  * @extends Jii.base.DataProvider
  */
-Jii.defineClass('Jii.base.ArrayDataProvider', /** @lends Jii.base.ArrayDataProvider.prototype */{
+module.exports = Jii.defineClass('Jii.base.ArrayDataProvider', /** @lends Jii.base.ArrayDataProvider.prototype */{
 
-    __extends: 'Jii.base.DataProvider',
+    __extends: DataProvider,
 
     /**
      * @type {string|function} the column that is used as the key of the data models.
@@ -61,7 +63,7 @@ Jii.defineClass('Jii.base.ArrayDataProvider', /** @lends Jii.base.ArrayDataProvi
         // @todo Pagination & Sort
         /*var sort = this.getSort();
         if (sort !== false) {
-            models = this._sortModels(Jii._.clone(models), sort);
+            models = this._sortModels(_clone(models), sort);
         }
 
         var pagination = this.getPagination();
@@ -81,15 +83,15 @@ Jii.defineClass('Jii.base.ArrayDataProvider', /** @lends Jii.base.ArrayDataProvi
      */
     _prepareKeys(models) {
         if (this.key !== null) {
-            return Jii._.map(models, model => {
-                if (Jii._.isString(this.key)) {
+            return _map(models, model => {
+                if (_isString(this.key)) {
                     return model[this.key];
                 }
                 return this.key.call(null, model);
             });
         }
 
-        return Jii._.keys(models);
+        return _keys(models);
     },
 
     /**
@@ -108,7 +110,7 @@ Jii.defineClass('Jii.base.ArrayDataProvider', /** @lends Jii.base.ArrayDataProvi
     _sortModels(models, sort) {
         // @todo Pagination & Sort
         /*var orders = sort.getOrders();
-        if (!Jii._.isEmpty(orders)) {
+        if (!_isEmpty(orders)) {
             ArrayHelper.multisort(models, array_keys(orders), array_values(orders));
         }
 

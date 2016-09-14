@@ -5,21 +5,17 @@
 
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
-
-require('./Validator');
+var _isFunction = require('lodash/isFunction');
+var Validator = require('./Validator');
 
 /**
  * @class Jii.validators.InlineValidator
  * @extends Jii.validators.Validator
  */
-Jii.defineClass('Jii.validators.InlineValidator', /** @lends Jii.validators.InlineValidator.prototype */{
+module.exports = Jii.defineClass('Jii.validators.InlineValidator', /** @lends Jii.validators.InlineValidator.prototype */{
 
-	__extends: 'Jii.validators.Validator',
+    __extends: Validator,
 
 	method: null,
 
@@ -35,7 +31,7 @@ Jii.defineClass('Jii.validators.InlineValidator', /** @lends Jii.validators.Inli
     validateAttribute(object, attribute) {
         var method = object[this.method];
 
-        if (!Jii._.isFunction(method)) {
+        if (!_isFunction(method)) {
             throw new Jii.exceptions.ApplicationException('Not find method `' + this.method + '` in model `' + object.debugClassName + '`.');
         }
 

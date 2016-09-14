@@ -12,7 +12,7 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
     _assertValidation: function(test, validator, values, hasErrors) {
         var model = new tests.unit.models.FakeValidationModel();
 
-        Jii._.each(values, function(value) {
+        values.forEach(function(value) {
             model.set('foo', value);
             model.clearErrors();
 

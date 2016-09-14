@@ -5,16 +5,12 @@
 
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
 
 /**
  * @class Jii.base.ModelAdapterInterface
  */
-Jii.defineClass('Jii.base.ModelAdapterInterface', /** @lends Jii.base.ModelAdapterInterface.prototype */{
+module.exports = Jii.defineClass('Jii.base.ModelAdapterInterface', /** @lends Jii.base.ModelAdapterInterface.prototype */{
 
     /**
      * @type {object|string[]|null}

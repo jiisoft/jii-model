@@ -5,21 +5,16 @@
 
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
-
-require('./Validator');
+var Validator = require('./Validator');
 
 /**
  * @class Jii.validators.DefaultValueValidator
  * @extends Jii.validators.Validator
  */
-Jii.defineClass('Jii.validators.DefaultValueValidator', /** @lends Jii.validators.DefaultValueValidator.prototype */{
+module.exports = Jii.defineClass('Jii.validators.DefaultValueValidator', /** @lends Jii.validators.DefaultValueValidator.prototype */{
 
-	__extends: 'Jii.validators.Validator',
+    __extends: Validator,
 
 	value: null,
 

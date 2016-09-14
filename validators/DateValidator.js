@@ -5,21 +5,18 @@
 
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
-
-require('./Validator');
+var _isArray = require('lodash/isArray');
+var _isNaN = require('lodash/isNaN');
+var Validator = require('./Validator');
 
 /**
  * @class Jii.validators.DateValidator
  * @extends Jii.validators.Validator
  */
-Jii.defineClass('Jii.validators.DateValidator', /** @lends Jii.validators.DateValidator.prototype */{
+module.exports = Jii.defineClass('Jii.validators.DateValidator', /** @lends Jii.validators.DateValidator.prototype */{
 
-	__extends: 'Jii.validators.Validator',
+    __extends: Validator,
 
 	format: 'Y-m-d',
 
@@ -35,7 +32,7 @@ Jii.defineClass('Jii.validators.DateValidator', /** @lends Jii.validators.DateVa
     validateAttribute(object, attribute) {
         var value = object.get(attribute);
 
-        if (Jii._.isArray(value)) {
+        if (_isArray(value)) {
             this.addError(object, attribute, this.message);
             return;
         }
@@ -52,7 +49,7 @@ Jii.defineClass('Jii.validators.DateValidator', /** @lends Jii.validators.DateVa
     validateValue(value) {
         // @todo Validate by format
         var timestamp = Date.parse(value);
-        return !Jii._.isNaN(timestamp);
+        return !_isNaN(timestamp);
     }
 
 });

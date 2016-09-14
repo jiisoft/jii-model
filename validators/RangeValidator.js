@@ -5,21 +5,18 @@
 
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
-
-require('./Validator');
+var _isArray = require('lodash/isArray');
+var _each = require('lodash/each');
+var Validator = require('./Validator');
 
 /**
  * @class Jii.validators.RangeValidator
  * @extends Jii.validators.Validator
  */
-Jii.defineClass('Jii.validators.RangeValidator', /** @lends Jii.validators.RangeValidator.prototype */{
+module.exports = Jii.defineClass('Jii.validators.RangeValidator', /** @lends Jii.validators.RangeValidator.prototype */{
 
-	__extends: 'Jii.validators.Validator',
+    __extends: Validator,
 
 	range: null,
 
@@ -30,7 +27,7 @@ Jii.defineClass('Jii.validators.RangeValidator', /** @lends Jii.validators.Range
     init() {
         this.__super();
 
-        if (!Jii._.isArray(this.range)) {
+        if (!_isArray(this.range)) {
             throw new Jii.exceptions.ApplicationException('The `range` property must be set.');
         }
 
@@ -49,7 +46,7 @@ Jii.defineClass('Jii.validators.RangeValidator', /** @lends Jii.validators.Range
     validateValue(value) {
         var isFined = false;
 
-        Jii._.each(this.range, item => {
+        _each(this.range, item => {
             if (this.strict && value === item) {
                 isFined = true;
                 return false;

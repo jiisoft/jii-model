@@ -5,11 +5,10 @@
 
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
+var _isObject = require('lodash/isObject');
+var _each = require('lodash/each');
+var Collection = require('./Collection');
 
 /**
  * BaseDataProvider provides a base class that implements the [[DataProviderInterface]].
@@ -17,9 +16,9 @@ var Jii = require('jii');
  * @class Jii.base.DataProvider
  * @extends Jii.base.Collection
  */
-Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.DataProvider.prototype */{
+module.exports = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.DataProvider.prototype */{
 
-    __extends: 'Jii.base.Collection',
+    __extends: Collection,
 
     /**
      * @type {string} an ID that uniquely identifies the data provider among all data providers.
@@ -74,7 +73,7 @@ Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.DataProvider.protot
 
         if (forcePrepare || !this._isModelsPrepare) {
             this.splice(0, this.length);
-            Jii._.each(this.prepareModels(), model => {
+            _each(this.prepareModels(), model => {
                 this.push(model);
             });
         }
@@ -164,7 +163,7 @@ Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.DataProvider.protot
      */
     setPagination(value) {
         // @todo Pagination & Sort
-        /*if (Jii._.isObject(value)) {
+        /*if (_isObject(value)) {
          config = {class: Pagination.className()};
          if (this.id !== null) {
          config['pageParam'] = this.id . '-page';
@@ -204,7 +203,7 @@ Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.DataProvider.protot
      */
     setSort(value) {
         // @todo Pagination & Sort
-        /*if (Jii._.isObject(value)) {
+        /*if (_isObject(value)) {
          config = {class: Sort.className()};
          if (this.id !== null) {
          config['sortParam'] = this.id . '-sort';

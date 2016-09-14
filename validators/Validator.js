@@ -5,19 +5,26 @@
 
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
+var _isFunction = require('lodash/isFunction');
+var _isObject = require('lodash/isObject');
+var _isArray = require('lodash/isArray');
+var _indexOf = require('lodash/indexOf');
+var _isString = require('lodash/isString');
+var _has = require('lodash/has');
+var _extend = require('lodash/extend');
+var _intersection = require('lodash/intersection');
+var _map = require('lodash/map');
+var _each = require('lodash/each');
+var Object = require('jii/base/Object');
 
 /**
  * @class Jii.validators.Validator
  * @extends Jii.base.Object
  */
-Jii.defineClass('Jii.validators.Validator', /** @lends Jii.validators.Validator.prototype */{
+module.exports = Jii.defineClass('Jii.validators.Validator', /** @lends Jii.validators.Validator.prototype */{
 
-	__extends: 'Jii.base.Object',
+	__extends: Object,
 
 	__static: /** @lends Jii.validators.Validator */{
 
@@ -51,16 +58,16 @@ Jii.defineClass('Jii.validators.Validator', /** @lends Jii.validators.Validator.
 			params = params || {};
 			params.attributes = attributes;
 
-			if (Jii._.isFunction(object[type])) {
+			if (_isFunction(object[type])) {
 				params.className = 'Jii.validators.InlineValidator';
 				params.method = type;
 			} else {
-				if (Jii._.has(this.defaultValidators, type)) {
+				if (_has(this.defaultValidators, type)) {
 					type = this.defaultValidators[type];
 				}
 
-				if (Jii._.isObject(type)) {
-					Jii._.extend(params, type);
+				if (_isObject(type)) {
+					_extend(params, type);
 				} else {
 					params.className = type;
 				}
@@ -93,11 +100,11 @@ Jii.defineClass('Jii.validators.Validator', /** @lends Jii.validators.Validator.
     },
 
     validate(object, attributes) {
-        attributes = Jii._.isArray(attributes) ?
-            Jii._.intersection(this.attributes, attributes) :
+        attributes = _isArray(attributes) ?
+            _intersection(this.attributes, attributes) :
             this.attributes;
 
-        var promises = Jii._.map(attributes, attribute => {
+        var promises = _map(attributes, attribute => {
             if (this.skipOnError && object.hasErrors(attribute)) {
                 return;
             }
@@ -113,8 +120,8 @@ Jii.defineClass('Jii.validators.Validator', /** @lends Jii.validators.Validator.
     },
 
     isActive(scenario) {
-        return Jii._.indexOf(this.except, scenario) === -1 &&
-            (!this.on || this.on.length === 0 || Jii._.indexOf(this.on, scenario) !== -1);
+        return _indexOf(this.except, scenario) === -1 &&
+            (!this.on || this.on.length === 0 || _indexOf(this.on, scenario) !== -1);
     },
 
     addError(object, attribute, message, params) {
@@ -124,7 +131,7 @@ Jii.defineClass('Jii.validators.Validator', /** @lends Jii.validators.Validator.
 
         // @todo
         //message = Jii.t('jii', message);
-        Jii._.each(params, (value, key) => {
+        _each(params, (value, key) => {
             message = message.replace('{' + key + '}', value);
         });
 
@@ -135,8 +142,8 @@ Jii.defineClass('Jii.validators.Validator', /** @lends Jii.validators.Validator.
     isEmpty(value, isTrim) {
         return value === null ||
             value === '' ||
-            (isTrim && Jii._.isString(value) && value.replace(/^\s+|\s+$/g, '') === '') ||
-            (Jii._.isArray(value) && value.length === 0);
+            (isTrim && _isString(value) && value.replace(/^\s+|\s+$/g, '') === '') ||
+            (_isArray(value) && value.length === 0);
     }
 
 

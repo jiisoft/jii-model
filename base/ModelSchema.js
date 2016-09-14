@@ -5,19 +5,23 @@
 
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
+var _isString = require('lodash/isString');
+var _isNumber = require('lodash/isNumber');
+var _isObject = require('lodash/isObject');
+var _isEmpty = require('lodash/isEmpty');
+var _each = require('lodash/each');
+var _has = require('lodash/has');
+var _keys = require('lodash/keys');
+var Object = require('jii/base/Object');
 
 /**
  * @class Jii.base.ModelSchema
  * @extends Jii.base.Object
  */
-Jii.defineClass('Jii.base.ModelSchema', /** @lends Jii.base.ModelSchema.prototype */{
+module.exports = Jii.defineClass('Jii.base.ModelSchema', /** @lends Jii.base.ModelSchema.prototype */{
 
-	__extends: 'Jii.base.Object',
+	__extends: Object,
 
     __static: /** @lends Jii.base.ModelSchema */{
 
@@ -27,10 +31,10 @@ Jii.defineClass('Jii.base.ModelSchema', /** @lends Jii.base.ModelSchema.prototyp
          * @returns {Jii.base.ModelSchema}
          */
         createFromObject(obj) {
-            Jii._.each(obj.columns, (column, name) => {
+            _each(obj.columns, (column, name) => {
                 if (!(column instanceof Jii.base.ModelAttributeSchema)) {
-                    if (Jii._.isString(column)) {
-                        if (Jii._.isNumber(name)) {
+                    if (_isString(column)) {
+                        if (_isNumber(name)) {
                             var parts = column.split(':');
                             column = {
                                 name: parts[0],
@@ -44,10 +48,10 @@ Jii.defineClass('Jii.base.ModelSchema', /** @lends Jii.base.ModelSchema.prototyp
                         }
                     }
 
-                    if (!Jii._.isObject(column)) {
+                    if (!_isObject(column)) {
                         throw new Jii.exceptions.InvalidConfigException('Invalid column format: ' + column);
                     }
-                    if (!Jii._.isString(name)) {
+                    if (!_isString(name)) {
                         column.name = name;
                     }
                     obj.columns[name] = new Jii.base.ModelAttributeSchema(column);
@@ -81,7 +85,7 @@ Jii.defineClass('Jii.base.ModelSchema', /** @lends Jii.base.ModelSchema.prototyp
 	 * @return {Jii.base.ModelAttributeSchema} metadata of the named column. Null if the named column does not exist.
 	 */
 	getColumn(name) {
-		return Jii._.has(this.columns, name) ? this.columns[name] : null;
+		return _has(this.columns, name) ? this.columns[name] : null;
 	},
 
 	/**
@@ -89,21 +93,21 @@ Jii.defineClass('Jii.base.ModelSchema', /** @lends Jii.base.ModelSchema.prototyp
 	 * @return {[]} list of column names
 	 */
 	getColumnNames() {
-		return Jii._.keys(this.columns);
+		return _keys(this.columns);
 	},
 
     toJSON() {
         var obj = {};
 
-        if (!Jii._.isEmpty(this.primaryKey)) {
+        if (!_isEmpty(this.primaryKey)) {
             obj.primaryKey = this.primaryKey;
         }
-        if (!Jii._.isEmpty(this.schemaName)) {
+        if (!_isEmpty(this.schemaName)) {
             obj.schemaName = this.schemaName;
         }
-        if (!Jii._.isEmpty(this.columns)) {
+        if (!_isEmpty(this.columns)) {
             obj.columns = {};
-            Jii._.each(this.columns, (column, name) => {
+            _each(this.columns, (column, name) => {
                 obj.columns[name] = column.toJSON();
             });
         }

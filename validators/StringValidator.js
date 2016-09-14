@@ -5,21 +5,18 @@
 
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
-
-require('./Validator');
+var _isArray = require('lodash/isArray');
+var _isString = require('lodash/isString');
+var Validator = require('./Validator');
 
 /**
  * @class Jii.validators.StringValidator
  * @extends Jii.validators.Validator
  */
-Jii.defineClass('Jii.validators.StringValidator', /** @lends Jii.validators.StringValidator.prototype */{
+module.exports = Jii.defineClass('Jii.validators.StringValidator', /** @lends Jii.validators.StringValidator.prototype */{
 
-	__extends: 'Jii.validators.Validator',
+    __extends: Validator,
 
 	length: null,
 
@@ -36,7 +33,7 @@ Jii.defineClass('Jii.validators.StringValidator', /** @lends Jii.validators.Stri
     init() {
         this.__super();
 
-        if (Jii._.isArray(this.length)) {
+        if (_isArray(this.length)) {
             if (this.length[0]) {
                 this.min = this.length[0];
             }
@@ -63,7 +60,7 @@ Jii.defineClass('Jii.validators.StringValidator', /** @lends Jii.validators.Stri
     validateAttribute(object, attribute) {
         var value = object.get(attribute);
 
-        if (!Jii._.isString(value)) {
+        if (!_isString(value)) {
             this.addError(object, attribute, this.message);
             return;
         }
@@ -88,7 +85,7 @@ Jii.defineClass('Jii.validators.StringValidator', /** @lends Jii.validators.Stri
     },
 
     validateValue(value) {
-        if (!Jii._.isString(value)) {
+        if (!_isString(value)) {
             return false;
         }
 

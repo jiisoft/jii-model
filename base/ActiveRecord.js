@@ -5,22 +5,35 @@
 
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
-
-require('./Model');
+var _upperFirst = require('lodash/upperFirst');
+var _isArray = require('lodash/isArray');
+var _isObject = require('lodash/isObject');
+var _isEmpty = require('lodash/isEmpty');
+var _indexOf = require('lodash/indexOf');
+var _isEqual = require('lodash/isEqual');
+var _isNumber = require('lodash/isNumber');
+var _isUndefined = require('lodash/isUndefined');
+var _isFunction = require('lodash/isFunction');
+var _each = require('lodash/each');
+var _clone = require('lodash/clone');
+var _size = require('lodash/size');
+var _keys = require('lodash/keys');
+var _has = require('lodash/has');
+var _filter = require('lodash/filter');
+var _first = require('lodash/first');
+var _values = require('lodash/values');
+var _map = require('lodash/map');
+var Model = require('./Model');
 
 /**
  * @abstract
  * @class Jii.base.ActiveRecord
  * @extends Jii.base.Model
  */
-Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.prototype */{
+module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.prototype */{
 
-	__extends: 'Jii.base.Model',
+	__extends: Model,
 	
 	__static: /** @lends Jii.base.ActiveRecord */{
 
@@ -167,7 +180,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 			var query = this.find();
 
 			return Promise.resolve().then(() => {
-				if (Jii._.isArray(condition) || Jii._.isObject(condition)) {
+				if (_isArray(condition) || _isObject(condition)) {
 					return Promise.resolve(condition);
 				}
 
@@ -176,7 +189,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 				// query by primary key
 				if (primaryKey.length > 0) {
 					var pk = primaryKey[0];
-					if (!Jii._.isEmpty(query.getJoin()) || !Jii._.isEmpty(query.getJoinWith())) {
+					if (!_isEmpty(query.getJoin()) || !_isEmpty(query.getJoinWith())) {
 						pk = this.tableName() + '.' + pk;
 					}
 
@@ -274,14 +287,14 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 		populateRecord(record, row) {
 			var columns = record.attributes();
 
-			Jii._.each(row, (value, name) => {
-				if (Jii._.indexOf(columns, name) !== -1) {
+			_each(row, (value, name) => {
+				if (_indexOf(columns, name) !== -1) {
 					record._attributes[name] = value;
 				} else if (record.canSetProperty(name)) {
 					record.set(name, value);
 				}
 			});
-			record.setOldAttributes(Jii._.clone(record._attributes));
+			record.setOldAttributes(_clone(record._attributes));
 		},
 
 		/**
@@ -309,10 +322,10 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 		isPrimaryKey(keys) {
 			var pks = this.primaryKey();
 
-			if (keys.length !== Jii._.size(pks)) {
+			if (keys.length !== _size(pks)) {
 				return false;
 			}
-            return (!Jii._.isArray(pks) ? Jii._.keys(pks) : pks).sort().toString() === keys.sort().toString();
+            return (!_isArray(pks) ? _keys(pks) : pks).sort().toString() === keys.sort().toString();
 		}
 
 	},
@@ -460,7 +473,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 	 * @param {Jii.base.ActiveRecord|Jii.base.ActiveRecord[]|null} records the related records to be populated into the relation.
 	 */
 	populateRelation(name, records) {
-        this._setRelated(name, Jii._.isArray(records) ? this._createRelatedCollection(name, records) : records);
+        this._setRelated(name, _isArray(records) ? this._createRelatedCollection(name, records) : records);
 	},
 
 	/**
@@ -469,7 +482,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 	 * @returns {boolean} whether relation has been populated with records.
 	 */
 	isRelationPopulated(name) {
-		return Jii._.has(this._related, name);
+		return _has(this._related, name);
 	},
 
 	/**
@@ -518,7 +531,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
             } else {
                 var relation = this.getRelation(name);
                 if (relation.multiple) {
-                    var models = !Jii._.isArray(value) ? [value] : value;
+                    var models = !_isArray(value) ? [value] : value;
                     this._setRelated(name, this._createRelatedCollection(name, models));
                 } else {
                     var model = value;
@@ -548,7 +561,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
         // Multiple names support
         name = this._normalizeEventNames(name);
         if (name.length > 1) {
-            Jii._.each(name, n => {
+            _each(name, n => {
                 this.on(n, handler, data, isAppend)
             });
             return;
@@ -602,7 +615,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
         name = this._normalizeEventNames(name);
         if (name.length > 1) {
             var bool = false;
-            Jii._.each(name, n => {
+            _each(name, n => {
                 if (this.off(n, handler)) {
                     bool = true;
                 }
@@ -623,7 +636,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
         var modelFormat = this._detectKeyFormatModel(name, this.__static.EVENT_CHANGE_NAME);
         if (modelFormat) {
             if (this._relatedEvents[modelFormat.name]) {
-                this._relatedEvents[modelFormat.name] = Jii._.filter(this._relatedEvents[modelFormat.name], arr => {
+                this._relatedEvents[modelFormat.name] = _filter(this._relatedEvents[modelFormat.name], arr => {
                     return arr[0] !== modelFormat.subName || arr[1] !== handler;
                 });
             }
@@ -638,7 +651,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
         if (relationFormat) {
             var relationEvent = relationFormat.multiple ? Jii.base.Collection.EVENT_CHANGE : this.__static.EVENT_CHANGE;
             if (this._relatedEvents[relationFormat.name]) {
-                this._relatedEvents[relationFormat.name] = Jii._.filter(this._relatedEvents[relationFormat.name], arr => {
+                this._relatedEvents[relationFormat.name] = _filter(this._relatedEvents[relationFormat.name], arr => {
                     return arr[0] !== relationEvent || arr[1] !== handler;
                 });
             }
@@ -699,7 +712,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
         this._related[name] = value;
 
         // Attach events
-        Jii._.each(this._relatedEvents[name] || {}, args => {
+        _each(this._relatedEvents[name] || {}, args => {
             this._related[name].on.apply(this._related[name], args);
         });
         this.trigger(this.__static.EVENT_CHANGE_NAME + name, new Jii.model.ChangeAttributeEvent({
@@ -723,7 +736,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
         delete this._related[name];
 
         // Detach events
-        Jii._.each(this._relatedEvents[name] || {}, args => {
+        _each(this._relatedEvents[name] || {}, args => {
             oldValue.off(args[0], args[1]);
         });
         this.trigger(this.__static.EVENT_CHANGE_NAME + name, new Jii.model.ChangeAttributeEvent({
@@ -745,7 +758,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 	 * @returns {boolean}
 	 */
 	hasAttribute(name) {
-		return Jii._.has(this._attributes, name) || Jii._.indexOf(this.attributes(), name) !== -1;
+		return _has(this._attributes, name) || _indexOf(this.attributes(), name) !== -1;
 	},
 
 	/**
@@ -776,7 +789,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 	 * @see hasAttribute()
 	 */
 	getOldAttribute(name) {
-		return Jii._.has(this._oldAttributes, name) ? this._oldAttributes[name] : null;
+		return _has(this._oldAttributes, name) ? this._oldAttributes[name] : null;
 	},
 
 	/**
@@ -787,7 +800,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 	 * @see hasAttribute()
 	 */
 	setOldAttribute(name, value) {
-		if (Jii._.has(this._oldAttributes, name) || this.hasAttribute(name)) {
+		if (_has(this._oldAttributes, name) || this.hasAttribute(name)) {
 			if (this._oldAttributes === null) {
 				this._oldAttributes = {};
 			}
@@ -813,11 +826,11 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 	 * @returns {boolean} whether the attribute has been changed
 	 */
 	isAttributeChanged(name) {
-		if (Jii._.has(this._attributes, name) && this._oldAttributes && Jii._.has(this._oldAttributes, name)) {
-			return !Jii._.isEqual(this._attributes[name], this._oldAttributes[name]);
+		if (_has(this._attributes, name) && this._oldAttributes && _has(this._oldAttributes, name)) {
+			return !_isEqual(this._attributes[name], this._oldAttributes[name]);
 		}
 
-		return Jii._.has(this._attributes, name) || (this._oldAttributes && Jii._.has(this._oldAttributes, name));
+		return _has(this._attributes, name) || (this._oldAttributes && _has(this._oldAttributes, name));
 	},
 
 	/**
@@ -834,12 +847,12 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 		}
 
 		var attributes = {};
-		Jii._.each(this._attributes, (value, name) => {
-			if (Jii._.indexOf(names, name) === -1) {
+		_each(this._attributes, (value, name) => {
+			if (_indexOf(names, name) === -1) {
 				return;
 			}
 
-			if (this._oldAttributes === null || !Jii._.has(this._oldAttributes, name) || !Jii._.isEqual(this._oldAttributes[name], value)) {
+			if (this._oldAttributes === null || !_has(this._oldAttributes, name) || !_isEqual(this._oldAttributes[name], value)) {
 				attributes[name] = value;
 			}
 		});
@@ -853,7 +866,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 	 * @return {string[]} list of attribute names.
 	 */
 	attributes() {
-		return Jii._.keys(this.__static.getTableSchema().columns);
+		return _keys(this.__static.getTableSchema().columns);
 	},
 
 	/**
@@ -994,8 +1007,8 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 	 */
 	updateAttributes(attributes) {
 		var attrs = [];
-		Jii._.each(attributes, (value, name) => {
-			if (Jii._.isNumber(name)) {
+		_each(attributes, (value, name) => {
+			if (_isNumber(name)) {
 				attrs.push(value);
 			} else {
 				this.set(name, value);
@@ -1004,7 +1017,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 		});
 
 		var values = this.getDirtyAttributes(attrs);
-		if (Jii._.isEmpty(values)) {
+		if (_isEmpty(values)) {
 			return Promise.resolve(0);
 		}
 
@@ -1012,7 +1025,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 
 		return this.__static.updateAll(values, oldPrimaryKey)
 			.then(rows => {
-				Jii._.each(values, (value, name) => {
+				_each(values, (value, name) => {
 					this._oldAttributes[name] = this._attributes[name];
 				});
 
@@ -1037,7 +1050,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
             }
 
             values = this.getDirtyAttributes(attributes);
-            if (Jii._.isEmpty(values)) {
+            if (_isEmpty(values)) {
                 return this.afterSave(false, values).then(() => {
                     return 0;
                 });
@@ -1047,8 +1060,8 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
         }).then(rows => {
 
 			var changedAttributes = {};
-			Jii._.each(values, (value, name) => {
-				changedAttributes[name] = Jii._.has(this._oldAttributes, name) ? this._oldAttributes[name] : null;
+			_each(values, (value, name) => {
+				changedAttributes[name] = _has(this._oldAttributes, name) ? this._oldAttributes[name] : null;
 				this._oldAttributes[name] = value;
 			});
 
@@ -1077,13 +1090,13 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 	 */
 	updateCounters(counters) {
 		var oldPrimaryKey = this.getOldPrimaryKey(true);
-		return this.__static.updateAllCounters(Jii._.clone(counters), oldPrimaryKey)
+		return this.__static.updateAllCounters(_clone(counters), oldPrimaryKey)
 			.then(affectedRows => {
 				if (affectedRows === 0) {
 					return Promise.resolve(false);
 				}
 
-				Jii._.each(counters, (value, name) => {
+				_each(counters, (value, name) => {
 					this._attributes[name] += value;
 					this._oldAttributes[name] = this._attributes[name];
 				});
@@ -1264,12 +1277,12 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 				return Promise.resolve(false);
 			}
 
-			Jii._.each(this.attributes(), name => {
-				this._attributes[name] = Jii._.has(record._attributes, name) ? record._attributes[name] : null;
+			_each(this.attributes(), name => {
+				this._attributes[name] = _has(record._attributes, name) ? record._attributes[name] : null;
 			});
-			this._oldAttributes = Jii._.clone(this._attributes);
+			this._oldAttributes = _clone(this._attributes);
 
-            Jii._.each(this._related, (relation, name) => {
+            _each(this._related, (relation, name) => {
                 this._removeRelated(name);
             });
 
@@ -1313,12 +1326,12 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 
 		var keys = this.__static.primaryKey();
 		if (keys.length === 1 && !asArray) {
-			return Jii._.has(this._attributes, keys[0]) ? this._attributes[keys[0]] : null;
+			return _has(this._attributes, keys[0]) ? this._attributes[keys[0]] : null;
 		}
 
 		var values = {};
-		Jii._.each(keys, name => {
-			values[name] = Jii._.has(this._attributes, name) ? this._attributes[name] : null;
+		_each(keys, name => {
+			values[name] = _has(this._attributes, name) ? this._attributes[name] : null;
 		});
 
 		return values;
@@ -1345,12 +1358,12 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 		var keys = this.__static.primaryKey();
 
 		if (keys.length === 1 && !asArray) {
-			return Jii._.has(this._oldAttributes, keys[0]) ? this._oldAttributes[keys[0]] : null;
+			return _has(this._oldAttributes, keys[0]) ? this._oldAttributes[keys[0]] : null;
 		}
 
 		var values = {};
-		Jii._.each(keys, name => {
-			values[name] = Jii._.has(this._oldAttributes, name) ? this._oldAttributes[name] : null;
+		_each(keys, name => {
+			values[name] = _has(this._oldAttributes, name) ? this._oldAttributes[name] : null;
 		});
 
 		return values;
@@ -1367,10 +1380,10 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 	 * @throws {Jii.exceptions.InvalidParamException} if the named relation does not exist.
 	 */
 	getRelation(name, throwException) {
-		throwException = !Jii._.isUndefined(throwException) ? throwException : true;
+		throwException = !_isUndefined(throwException) ? throwException : true;
 
-		var getter = 'get' + Jii._s.capitalize(name);
-		if (Jii._.isFunction(this[getter])) {
+		var getter = 'get' + _upperFirst(name);
+		if (_isFunction(this[getter])) {
 			return this[getter]();
 		} else if (throwException) {
 			throw new Jii.exceptions.InvalidParamException(this.className() + ' has no relation named `' + name + '`.');
@@ -1385,8 +1398,8 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
      * @returns {boolean}
      */
     hasRelation(name) {
-        var getter = 'get' + Jii._s.capitalize(name);
-        return Jii._.isFunction(this[getter]);
+        var getter = 'get' + _upperFirst(name);
+        return _isFunction(this[getter]);
     },
 
 	/**
@@ -1425,7 +1438,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 				var viaClass = null;
 				var viaTable = null;
 
-				if (Jii._.isArray(relation.getVia())) {
+				if (_isArray(relation.getVia())) {
 					/** @type {Jii.base.ActiveRecord} */
 					viaName = relation.getVia()[0];
 					viaRelation = relation.getVia()[1];
@@ -1437,24 +1450,24 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
                     this._removeRelated(viaName);
 				} else {
 					viaRelation = relation.getVia();
-					viaTable = Jii._.first(relation.getVia().getFrom());
+					viaTable = _first(relation.getVia().getFrom());
 				}
 
 				var columns = {};
-				Jii._.each(viaRelation.link, (b, a) => {
+				_each(viaRelation.link, (b, a) => {
 					columns[a] = this.get(b);
 				});
-				Jii._.each(relation.link, (b, a) => {
+				_each(relation.link, (b, a) => {
 					columns[b] = model.get(a);
 				});
-				Jii._.each(extraColumns, (v, k) => {
+				_each(extraColumns, (v, k) => {
 					columns[k] = v;
 				});
 
-				if (Jii._.isArray(relation.getVia())) {
+				if (_isArray(relation.getVia())) {
 					/** @type {Jii.base.ActiveRecord} */
 					var record = new viaClass();
-					Jii._.each(columns, (value, column) => {
+					_each(columns, (value, column) => {
 						record.set(column, value);
 					});
 					return record.insert(false);
@@ -1464,8 +1477,8 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 				return this.__static.getDb().createCommand().insert(viaTable, columns);
 			}
 
-			var p1 = model.__static.isPrimaryKey(Jii._.keys(relation.link));
-			var p2 = this.__static.isPrimaryKey(Jii._.values(relation.link));
+			var p1 = model.__static.isPrimaryKey(_keys(relation.link));
+			var p2 = this.__static.isPrimaryKey(_values(relation.link));
 			if (p1 && p2) {
 				if (this.isNewRecord() && model.isNewRecord()) {
 					throw new Jii.exceptions.InvalidCallException('Unable to link models: both models are newly created.');
@@ -1497,7 +1510,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 			// update lazily loaded related objects
 			if (!relation.multiple) {
                 this._setRelated(name, model);
-			} else if (Jii._.has(this._related, name)) {
+			} else if (_has(this._related, name)) {
                 this._related[name].add(model);
             }
 
@@ -1533,7 +1546,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 				var viaClass = null;
 				var viaTable = null;
 
-				if (Jii._.isArray(relation.getVia())) {
+				if (_isArray(relation.getVia())) {
 					/** @type {Jii.base.ActiveRecord} */
 					viaName = relation.getVia()[0];
 					viaRelation = relation.getVia()[1];
@@ -1544,22 +1557,22 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
                     this._removeRelated(viaName);
 				} else {
 					viaRelation = relation.getVia();
-					viaTable = Jii._.first(relation.getVia().getFrom());
+					viaTable = _first(relation.getVia().getFrom());
 				}
 
 				var columns = {};
 				var nulls = {};
-				Jii._.each(viaRelation.link, (b, a) => {
+				_each(viaRelation.link, (b, a) => {
 					columns[a] = this.get(b);
 				});
-				Jii._.each(relation.link, (b, a) => {
+				_each(relation.link, (b, a) => {
 					columns[b] = model.get(a);
 				});
-				Jii._.each(Jii._.keys(columns), (k) => {
+				_each(_keys(columns), (k) => {
 					nulls[k] = null;
 				});
 
-				if (Jii._.isArray(relation.getVia())) {
+				if (_isArray(relation.getVia())) {
 					if (isDelete) {
 						return viaClass.deleteAll(columns);
 					}
@@ -1576,11 +1589,11 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 				return command.update(viaTable, nulls, columns);
 			}
 
-			var p1 = model.__static.isPrimaryKey(Jii._.keys(relation.link));
-			var p2 = this.__static.isPrimaryKey(Jii._.values(relation.link));
+			var p1 = model.__static.isPrimaryKey(_keys(relation.link));
+			var p2 = this.__static.isPrimaryKey(_values(relation.link));
 
 			if (p1 && p2 || p2) {
-				Jii._.each(relation.link, (b, a) => {
+				_each(relation.link, (b, a) => {
 					model.set(a, null);
 				});
 
@@ -1588,11 +1601,11 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 			}
 
 			if (p1) {
-				Jii._.each(relation.link, (b, a) => {
+				_each(relation.link, (b, a) => {
 					var values = this.get(b);
 
-					if (Jii._.isArray(values)) { // relation via array valued attribute
-						var index = Jii._.indexOf(values, model.get(a));
+					if (_isArray(values)) { // relation via array valued attribute
+						var index = _indexOf(values, model.get(a));
 						if (index !== -1) {
 							values.splice(index, 1);
 						}
@@ -1611,7 +1624,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 					return;
 				}
 
-				if (Jii._.has(this._related, name)) {
+				if (_has(this._related, name)) {
 					this._related[name].remove(model);
 				}
 		});
@@ -1643,7 +1656,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 				var viaClass = null;
 				var viaTable = null;
 
-				if (Jii._.isArray(relation.getVia())) {
+				if (_isArray(relation.getVia())) {
 					/** @type {Jii.base.ActiveRecord} */
 					viaName = relation.getVia()[0];
 					viaRelation = relation.getVia()[1];
@@ -1654,17 +1667,17 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
                     this._removeRelated(viaName);
 				} else {
 					viaRelation = relation.getVia();
-					viaTable = Jii._.first(relation.getVia().getFrom());
+					viaTable = _first(relation.getVia().getFrom());
 				}
 
 				var condition = {};
 				var nulls = {};
-				Jii._.each(viaRelation.link, (b, a) => {
+				_each(viaRelation.link, (b, a) => {
 					nulls[a] = null;
 					condition[a] = this.get(b);
 				});
 
-				if (Jii._.isArray(relation.getVia())) {
+				if (_isArray(relation.getVia())) {
 					if (isDelete) {
 						return viaClass.deleteAll(condition);
 					}
@@ -1683,7 +1696,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 			/** @typedef {Jii.base.ActiveRecord} relatedModel */
 			var relatedModel = relation.modelClass;
 			var key = relation.link[0];
-			if (!isDelete && relation.link.length == 1 && Jii._.isArray(this.get(key))) {
+			if (!isDelete && relation.link.length == 1 && _isArray(this.get(key))) {
 				// relation via array valued attribute
 				this.set(key, []);
 				return this.save(false);
@@ -1691,7 +1704,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 				var nulls2 = {};
 				var condition2 = {};
 
-				Jii._.each(relation.link, (b, a) => {
+				_each(relation.link, (b, a) => {
 					nulls2[a] = null;
 					condition2[a] = this.get(b);
 				});
@@ -1717,13 +1730,13 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 	 * @returns {Promise}
 	 */
 	_bindModels(link, foreignModel, primaryModel) {
-		Jii._.each(link, (pk, fk) => {
+		_each(link, (pk, fk) => {
 			var value = primaryModel.get(pk);
 			if (value === null) {
 				throw new Jii.exceptions.InvalidCallException('Unable to link models: the primary key of `' + primaryModel.className() + '` is null.');
 			}
 
-			if (Jii._.isArray(foreignModel.get(fk))) { // relation via array valued attribute
+			if (_isArray(foreignModel.get(fk))) { // relation via array valued attribute
 				foreignModel.get(fk).concat(value);
 			} else {
 				foreignModel.set(fk, value);
@@ -1744,7 +1757,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 	getAttributeLabel(attribute) {
 		var labels = this.attributeLabels();
 
-		if (Jii._.has(labels, attribute)) {
+		if (_has(labels, attribute)) {
 			return labels[attribute];
 		}
 
@@ -1753,10 +1766,10 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 			var neededAttribute = attributeParts.pop();
 
 			var relatedModel = this;
-			Jii._.each(attributeParts, relationName => {
+			_each(attributeParts, relationName => {
                 this._fetchRelationFromRoot(relationName);
 
-				if (Jii._.has(this._related, relationName) && this._related[relationName] instanceof Jii.base.ActiveRecord) {
+				if (_has(this._related, relationName) && this._related[relationName] instanceof Jii.base.ActiveRecord) {
 					relatedModel = this._related[relationName];
 				} else {
 					// @todo
@@ -1771,7 +1784,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
 
 			labels = relatedModel.attributeLabels();
 
-			if (Jii._.has(labels[attribute])) {
+			if (_has(labels[attribute])) {
 				return labels[attribute];
 			}
 		}
@@ -1783,7 +1796,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
         this.__super();
 
         this._relatedEvents = {};
-        Jii._.each(this._relatedFetched, function(bool, relationName) {
+        _each(this._relatedFetched, function(bool, relationName) {
             var relation = this.getRelation(relationName);
             var modelClassName = Jii.namespace(relation.modelClass).className();
             var rootCollection = this.__static.getDb() ? this.__static.getDb().getRootCollection(modelClassName) : null;
@@ -1791,7 +1804,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
                 // @todo Implement EVENT_ALL
                 //rootCollection.off(Jii.base.Event.EVENT_ALL, this);
 
-                Jii._.each(rootCollection._events, function(handlers, name) {
+                _each(rootCollection._events, function(handlers, name) {
                     rootCollection.off(name, {
                         callback: this._onChangeRelatedModel,
                         context: this
@@ -1812,7 +1825,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
         items = items || [];
 
         var relation = this.getRelation(relationName);
-        var modelClassName = Jii._.isFunction(relation.modelClass) ?
+        var modelClassName = _isFunction(relation.modelClass) ?
             relation.modelClass.className() :
             relation.modelClass;
 
@@ -1864,7 +1877,7 @@ Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.ActiveRecord.protot
                 [
                     Jii.base.Collection.EVENT_CHANGE
                 ].concat(
-                    Jii._.map(affectedAttributes, attribute => {
+                    _map(affectedAttributes, attribute => {
                         return Jii.base.Collection.EVENT_CHANGE_NAME + attribute;
                     })
                 ),

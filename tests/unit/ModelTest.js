@@ -6,6 +6,9 @@ require('./models/Link');
 require('./models/LinkJunction');
 require('./models/LinkData');
 
+var _each = require('lodash/each');
+var _extend = require('lodash/extend');
+
 global.tests = Jii.namespace('tests');
 
 /**
@@ -23,7 +26,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
     },
 
     setterTest: function (test) {
-        Jii._.each(this._getModelInstances(), function (sampleModel) {
+        _each(this._getModelInstances(), function (sampleModel) {
             // Check insert scenario (set name and description)
             sampleModel.setScenario('insert');
             sampleModel.setAttributes({
@@ -52,7 +55,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
     },
 
     validateTest: function (test) {
-        Jii._.each(this._getModelInstances(), function (sampleModel) {
+        _each(this._getModelInstances(), function (sampleModel) {
             sampleModel.setScenario('insert');
             sampleModel.set('description', '1234567890+1');
             sampleModel.validate().then(function (isValid) {
@@ -60,19 +63,19 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
                 // Check validation errors
                 test.strictEqual(isValid, false);
                 test.strictEqual(sampleModel.hasErrors(), true);
-                test.strictEqual(Jii._.keys(sampleModel.getErrors()).length, 2);
+                test.strictEqual(Object.keys(sampleModel.getErrors()).length, 2);
                 test.strictEqual(sampleModel.getErrors().name.length, 1); // Required error
                 test.strictEqual(sampleModel.getErrors().description.length, 1); // Length error
 
                 // Add custom error
                 sampleModel.addError('uid', 'Error text..');
                 sampleModel.addError('name', 'Error text..');
-                test.strictEqual(Jii._.keys(sampleModel.getErrors()).length, 3);
+                test.strictEqual(Object.keys(sampleModel.getErrors()).length, 3);
                 test.strictEqual(sampleModel.getErrors().name.length, 2);
 
                 // Clear errors
                 sampleModel.clearErrors();
-                test.strictEqual(Jii._.keys(sampleModel.getErrors()).length, 0);
+                test.strictEqual(Object.keys(sampleModel.getErrors()).length, 0);
             });
         });
 
@@ -131,6 +134,8 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         var article;
         var events = [];
 
+        tests.unit.models.Article.getDb = tests.unit.models.User.getDb = function() {};
+
         /**
          *
          * @param {Jii.model.ChangeEvent|Jii.model.ChangeAttributeEvent} event
@@ -139,7 +144,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
             if (event instanceof Jii.model.ChangeAttributeEvent) {
                 events.push(event.attribute);
             } else if (event instanceof Jii.model.ChangeEvent) {
-                events.push.apply(events, Jii._.keys(event.changedAttributes));
+                events.push.apply(events, Object.keys(event.changedAttributes));
             }
         };
 
@@ -233,12 +238,12 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
             if (event instanceof Jii.model.ChangeAttributeEvent) {
                 events.push(event.attribute);
             } else if (event instanceof Jii.model.ChangeEvent) {
-                events.push.apply(events, Jii._.keys(event.changedAttributes));
+                events.push.apply(events, Object.keys(event.changedAttributes));
             } else if (event instanceof Jii.model.CollectionEvent) {
-                Jii._.each(event.added, function(model) {
+                _each(event.added, function(model) {
                     events.push('added-' + model.getPrimaryKey());
                 });
-                Jii._.each(event.removed, function(model) {
+                _each(event.removed, function(model) {
                     events.push('removed-' + model.getPrimaryKey());
                 });
             }
@@ -397,7 +402,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
                 return {};
             },
             setValues: function(original, proxy, values) {
-                Jii._.extend(proxy, values)
+                _extend(proxy, values)
             }
         });
         test.deepEqual(obj, article.getAttributes());
@@ -418,12 +423,12 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
             if (event instanceof Jii.model.ChangeAttributeEvent) {
                 events.push(event.attribute);
             } else if (event instanceof Jii.model.ChangeEvent) {
-                events.push.apply(events, Jii._.keys(event.changedAttributes));
+                events.push.apply(events, Object.keys(event.changedAttributes));
             } else if (event instanceof Jii.model.CollectionEvent) {
-                Jii._.each(event.added, function(model) {
+                _each(event.added, function(model) {
                     events.push('added-' + JSON.stringify(model.getPrimaryKey()));
                 });
-                Jii._.each(event.removed, function(model) {
+                _each(event.removed, function(model) {
                     events.push('removed-' + JSON.stringify(model.getPrimaryKey()));
                 });
             }
@@ -461,7 +466,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
             if (event instanceof Jii.model.ChangeAttributeEvent) {
                 events.push(event.attribute);
             } else if (event instanceof Jii.model.ChangeEvent) {
-                events.push.apply(events, Jii._.keys(event.changedAttributes));
+                events.push.apply(events, Object.keys(event.changedAttributes));
             }
         };
 
@@ -503,7 +508,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
             if (event instanceof Jii.model.ChangeAttributeEvent) {
                 events.push(event.attribute);
             } else if (event instanceof Jii.model.ChangeEvent) {
-                events.push.apply(events, Jii._.keys(event.changedAttributes));
+                events.push.apply(events, Object.keys(event.changedAttributes));
             }
         };
 
@@ -540,7 +545,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
 
         rootCollections = {};
         article.on('change:user', eventsFn);
-        test.deepEqual(Jii._.keys(rootCollections), ['tests.unit.models.User']);
+        test.deepEqual(Object.keys(rootCollections), ['tests.unit.models.User']);
 
         // fetch from root, then add
         test.strictEqual(article.get('user'), null);
@@ -583,12 +588,12 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
             if (event instanceof Jii.model.ChangeAttributeEvent) {
                 events.push(event.attribute);
             } else if (event instanceof Jii.model.ChangeEvent) {
-                events.push.apply(events, Jii._.keys(event.changedAttributes));
+                events.push.apply(events, Object.keys(event.changedAttributes));
             } else if (event instanceof Jii.model.CollectionEvent) {
-                Jii._.each(event.added, function(model) {
+                _each(event.added, function(model) {
                     events.push('added-' + JSON.stringify(model.getPrimaryKey()));
                 });
-                Jii._.each(event.removed, function(model) {
+                _each(event.removed, function(model) {
                     events.push('removed-' + JSON.stringify(model.getPrimaryKey()));
                 });
             }

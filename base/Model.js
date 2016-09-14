@@ -5,19 +5,29 @@
 
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
+var _isObject = require('lodash/isObject');
+var _isEmpty = require('lodash/isEmpty');
+var _isEqual = require('lodash/isEqual');
+var _isUndefined = require('lodash/isUndefined');
+var _indexOf = require('lodash/indexOf');
+var _isNumber = require('lodash/isNumber');
+var _isArray = require('lodash/isArray');
+var _isString = require('lodash/isString');
+var _each = require('lodash/each');
+var _has = require('lodash/has');
+var _map = require('lodash/map');
+var _keys = require('lodash/keys');
+var _startCase = require('lodash/startCase');
+var Component = require('jii/base/Component');
 
 /**
  * @class Jii.base.Model
  * @extends Jii.base.Component
  */
-Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
+module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
 
-    __extends: 'Jii.base.Component',
+    __extends: Component,
 
     _attributes: {},
     _errors: {},
@@ -66,7 +76,7 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
      * @constructor
      */
     constructor(attributes, config) {
-        if (Jii._.isObject(attributes)) {
+        if (_isObject(attributes)) {
             this.set(attributes);
         }
 
@@ -98,12 +108,12 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
 
         // Cancel in sub-models
         if (this._editedLevel === 0) {
-            Jii._.each(this._editedSubModels, subModel => {
+            _each(this._editedSubModels, subModel => {
                 subModel.cancelEdit();
             });
 
             // Revert attribute changes
-            Jii._.each(this._editedChanges, (values, name) => {
+            _each(this._editedChanges, (values, name) => {
                 this._attributes[name] = values[0];
             });
         }
@@ -119,13 +129,13 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
 
         if (this._editedLevel === 0) {
             // End in sub-models
-            Jii._.each(this._editedSubModels, subModel => {
+            _each(this._editedSubModels, subModel => {
                 subModel.endEdit();
             });
 
             // Trigger change attribute events
-            if (!Jii._.isEmpty(this._editedChanges)) {
-                Jii._.each(this._editedChanges, (values, name) => {
+            if (!_isEmpty(this._editedChanges)) {
+                _each(this._editedChanges, (values, name) => {
                     this.trigger(this.__static.EVENT_CHANGE_NAME + name, new Jii.model.ChangeAttributeEvent({
                         sender: this,
                         attribute: name,
@@ -191,11 +201,11 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
      */
     set(name, value) {
         // Object format support
-        if (Jii._.isObject(name)) {
+        if (_isObject(name)) {
             this.beginEdit();
 
             var isChanged = false;
-            Jii._.each(name, (value, name) => {
+            _each(name, (value, name) => {
                 if (this.set(name, value)) {
                     isChanged = true;
                 }
@@ -230,7 +240,7 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
             this.beginEdit();
 
             var oldValue = this._attributes[name];
-            var isAttributeChanged = !Jii._.isEqual(oldValue, value);
+            var isAttributeChanged = !_isEqual(oldValue, value);
             this._attributes[name] = value;
 
             if (isAttributeChanged) {
@@ -322,7 +332,7 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
      * @see hasAttribute()
      */
     getAttribute(name) {
-        return Jii._.has(this._attributes, name) ? this._attributes[name] : null;
+        return _has(this._attributes, name) ? this._attributes[name] : null;
     },
 
     /**
@@ -348,15 +358,15 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
      * @returns {boolean}
      */
     setAttributes(attributes, safeOnly) {
-        if (Jii._.isUndefined(safeOnly)) {
+        if (_isUndefined(safeOnly)) {
             safeOnly = true;
         }
 
         var filteredAttributes = {};
         var attributeNames = safeOnly ? this.safeAttributes() : this.attributes();
 
-        Jii._.each(attributes, (value, key) => {
-            if (Jii._.indexOf(attributeNames, key) !== -1) {
+        _each(attributes, (value, key) => {
+            if (_indexOf(attributeNames, key) !== -1) {
                 filteredAttributes[key] = value;
             } else if (safeOnly) {
                 this.onUnsafeAttribute(key, value);
@@ -374,8 +384,8 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
         var cloned = adapter.instance(this);
 
         var attributes = {};
-        Jii._.each(adapter.attributes || this.attributes(), (name, alias) => {
-            if (Jii._.isNumber(alias)) {
+        _each(adapter.attributes || this.attributes(), (name, alias) => {
+            if (_isNumber(alias)) {
                 alias = name;
             }
             attributes[alias] = name;
@@ -383,13 +393,13 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
 
         // Fill model
         var values = {};
-        Jii._.each(attributes, (name, alias) => {
+        _each(attributes, (name, alias) => {
             values[alias] = this.get(name);
         });
         adapter.setValues(this, cloned, values);
 
         // Subscribe for sync
-        Jii._.each(attributes, (name, alias) => {
+        _each(attributes, (name, alias) => {
             this.on(
                 this.__static.EVENT_CHANGE_NAME + name,
                 /** @param {Jii.model.ChangeAttributeEvent} event */
@@ -426,12 +436,12 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
     getAttributes(names, except) {
         var values = {};
 
-        if (!Jii._.isArray(names)) {
+        if (!_isArray(names)) {
             names = this.attributes();
         }
 
-        Jii._.each(names, name => {
-            if (!Jii._.isArray(except) || Jii._.indexOf(name, except) === -1) {
+        _each(names, name => {
+            if (!_isArray(except) || _indexOf(name, except) === -1) {
                 values[name] = this.get(name);
             }
         });
@@ -446,10 +456,10 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
     getAttributesTree(names) {
         // Convert string names to tree
         var treeNames = {};
-        Jii._.each(names, name => {
+        _each(names, name => {
             var obj = treeNames;
             var keys = name.split('.');
-            Jii._.each(keys, key => {
+            _each(keys, key => {
                 obj[key] = obj[key] || {};
                 obj = obj[key];
             });
@@ -460,12 +470,12 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
 
     _buildTree(names, model) {
         var obj = {};
-        Jii._.each(names, (child, name) => {
+        _each(names, (child, name) => {
             var value = model.get(name);
             if (value instanceof Jii.base.Model) {
                 obj[name] = this._buildTree(child, value);
             } else if (value instanceof Jii.base.Collection) {
-                obj[name] = Jii._.map(value.getModels(), item => this._buildTree(child, item));
+                obj[name] = _map(value.getModels(), item => this._buildTree(child, item));
             } else {
                 obj[name] = value;
             }
@@ -482,7 +492,7 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
      * @return {Array}
      */
     attributes() {
-        return Jii._.keys(this._attributes);
+        return _keys(this._attributes);
     },
 
     /**
@@ -492,7 +502,7 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
      */
     hasAttribute(name) {
         //return true;
-        return Jii._.indexOf(this.attributes(), name) !== -1;
+        return _indexOf(this.attributes(), name) !== -1;
     },
 
     /**
@@ -510,7 +520,7 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
      */
     getAttributeLabel(name) {
         var attributes = this.attributeLabels();
-        return Jii._.has(attributes, name) ? attributes[name] : name;
+        return _has(attributes, name) ? attributes[name] : name;
     },
 
     /**
@@ -528,7 +538,7 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
      */
     getAttributeHint(name) {
         var attributes = this.attributeHints();
-        return Jii._.has(attributes, name) ? attributes[name] : '';
+        return _has(attributes, name) ? attributes[name] : '';
     },
 
     /**
@@ -551,12 +561,12 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
         var scenario = this.getScenario();
         var scenarios = this.scenarios();
 
-        if (!Jii._.has(scenarios, scenario)) {
+        if (!_has(scenarios, scenario)) {
             return [];
         }
 
         var attributes = [];
-        Jii._.each(scenarios[scenario], (attribute) => {
+        _each(scenarios[scenario], (attribute) => {
             if (attribute.substr(0, 1) !== '!') {
                 attributes.push(attribute);
             }
@@ -572,12 +582,12 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
         var scenario = this.getScenario();
         var scenarios = this.scenarios();
 
-        if (!Jii._.has(scenarios, scenario)) {
+        if (!_has(scenarios, scenario)) {
             return [];
         }
 
         var attributes = scenarios[scenario];
-        Jii._.each(attributes, (attribute, i) => {
+        _each(attributes, (attribute, i) => {
             if (attribute.substr(0, 1) === '!') {
                 attributes[i] = attribute.substr(1);
             }
@@ -594,30 +604,30 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
         var scenarios = {};
         scenarios['default'] = [];
 
-        Jii._.each(this.getValidators(), validator => {
-            Jii._.each(validator.on, scenario => {
+        _each(this.getValidators(), validator => {
+            _each(validator.on, scenario => {
                 scenarios[scenario] = [];
             });
-            Jii._.each(validator.except, scenario => {
+            _each(validator.except, scenario => {
                 scenarios[scenario] = [];
             });
         });
-        var names = Jii._.keys(scenarios);
+        var names = _keys(scenarios);
 
-        Jii._.each(this.getValidators(), validator => {
+        _each(this.getValidators(), validator => {
             var validatorScenarios = validator.on && validator.on.length > 0 ? validator.on : names;
-            Jii._.each(validatorScenarios, name => {
+            _each(validatorScenarios, name => {
                 if (!scenarios[name]) {
                     scenarios[name] = [];
                 }
 
-                if (Jii._.indexOf(validator.except, name) !== -1) {
+                if (_indexOf(validator.except, name) !== -1) {
                     return;
                 }
 
-                Jii._.each(validator.attributes, attribute => {
+                _each(validator.attributes, attribute => {
 
-                    if (Jii._.indexOf(scenarios[name], attribute) !== -1) {
+                    if (_indexOf(scenarios[name], attribute) !== -1) {
                         return;
                     }
 
@@ -635,15 +645,15 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
      */
     createValidators() {
         var validators = [];
-        Jii._.each(this.rules(), rule => {
+        _each(this.rules(), rule => {
             if (rule instanceof Jii.validators.Validator) {
                 validators.push(rule);
-            } else if (Jii._.isArray(rule) && rule.length >= 2) {
-                var attributes = Jii._.isString(rule[0]) ? [rule[0]] : rule[0];
+            } else if (_isArray(rule) && rule.length >= 2) {
+                var attributes = _isString(rule[0]) ? [rule[0]] : rule[0];
                 var params = rule[2] || {};
 
                 if (params.on) {
-                    params.on = Jii._.isString(params.on) ? [params.on] : params.on;
+                    params.on = _isString(params.on) ? [params.on] : params.on;
                 }
 
                 var validator = Jii.validators.Validator.create(rule[1], this, attributes, params);
@@ -675,12 +685,12 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
         var validators = [];
         var scenario = this.getScenario();
 
-        Jii._.each(this.getValidators(), validator => {
+        _each(this.getValidators(), validator => {
             if (!validator.isActive(scenario)) {
                 return;
             }
 
-            if (attribute && Jii._.indexOf(validator.attributes, attribute) === -1) {
+            if (attribute && _indexOf(validator.attributes, attribute) === -1) {
                 return;
             }
 
@@ -696,7 +706,7 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
      * @param {Boolean} [isClearErrors]
      */
     validate(attributes, isClearErrors) {
-        if (Jii._.isUndefined(isClearErrors)) {
+        if (_isUndefined(isClearErrors)) {
             isClearErrors = true;
         }
         if (!attributes) {
@@ -705,7 +715,7 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
 
         var scenarios = this.scenarios();
         var scenario = this.getScenario();
-        if (!Jii._.has(scenarios, scenario)) {
+        if (!_has(scenarios, scenario)) {
             throw new Jii.exceptions.ApplicationException('Unknown scenario `' + scenario + '`.');
         }
 
@@ -719,7 +729,7 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
                     return Promise.resolve(false);
                 }
 
-                var promises = Jii._.map(this.getActiveValidators(), validator => {
+                var promises = _map(this.getActiveValidators(), validator => {
                     return validator.validate(this, attributes);
                 });
                 return Promise.all(promises);
@@ -770,7 +780,7 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
      * @returns {*}
      */
     hasErrors(attribute) {
-        return attribute ? Jii._.has(this._errors, attribute) : !Jii._.isEmpty(this._errors);
+        return attribute ? _has(this._errors, attribute) : !_isEmpty(this._errors);
     },
 
     /**
@@ -817,7 +827,7 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
      */
     isAttributeRequired(attribute) {
         var bool = false;
-        Jii._.each(this.getActiveValidators(attribute), validator => {
+        _each(this.getActiveValidators(attribute), validator => {
             if (validator instanceof Jii.validators.RequiredValidator && validator.when === null) {
                 bool = true;
             }
@@ -832,7 +842,7 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
      * @see safeAttributes()
      */
     isAttributeSafe(attribute) {
-        return Jii._.indexOf(this.safeAttributes(), attribute) !== -1;
+        return _indexOf(this.safeAttributes(), attribute) !== -1;
     },
 
     /**
@@ -842,7 +852,7 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
      * @see activeAttributes()
      */
     isAttributeActive(attribute) {
-        return Jii._.indexOf(this.activeAttributes(), attribute) !== -1;
+        return _indexOf(this.activeAttributes(), attribute) !== -1;
     },
 
     /**
@@ -853,12 +863,12 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
      * @see getFirstError()
      */
     getFirstErrors() {
-        if (Jii._.isEmpty(this._errors)) {
+        if (_isEmpty(this._errors)) {
             return {};
         }
 
         var errors = {};
-        Jii._.each(this._errors, (es, name) => {
+        _each(this._errors, (es, name) => {
             if (es.length > 0) {
                 errors[name] = es[0];
             }
@@ -875,7 +885,7 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
      * @see getFirstErrors()
      */
     getFirstError(attribute) {
-        return Jii._.has(this._errors, attribute) ? this._errors[attribute][0] : null;
+        return _has(this._errors, attribute) ? this._errors[attribute][0] : null;
     },
 
     /**
@@ -887,7 +897,7 @@ Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
      * @returns {string} the attribute label
      */
     generateAttributeLabel(name) {
-        return Jii._s.humanize(name);
+        return _startCase(name);
     }
 
 });

@@ -5,21 +5,18 @@
 
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
-
-require('./Validator');
+var _isString = require('lodash/isString');
+var _each = require('lodash/each');
+var Validator = require('./Validator');
 
 /**
  * @class Jii.validators.UrlValidator
  * @extends Jii.validators.Validator
  */
-Jii.defineClass('Jii.validators.UrlValidator', /** @lends Jii.validators.UrlValidator.prototype */{
+module.exports = Jii.defineClass('Jii.validators.UrlValidator', /** @lends Jii.validators.UrlValidator.prototype */{
 
-	__extends: 'Jii.validators.Validator',
+    __extends: Validator,
 
 	pattern: /^{schemes}:\/\/(([A-Z0-9][A-Z0-9_-]*)(\.[A-Z0-9][A-Z0-9_-]*)+)/i,
 
@@ -47,7 +44,7 @@ Jii.defineClass('Jii.validators.UrlValidator', /** @lends Jii.validators.UrlVali
     },
 
     validateValue(value) {
-        if (!Jii._.isString(value) || value.length > 2000) {
+        if (!_isString(value) || value.length > 2000) {
             return false;
         }
 
@@ -59,7 +56,7 @@ Jii.defineClass('Jii.validators.UrlValidator', /** @lends Jii.validators.UrlVali
         pattern = pattern.replace('{schemes}', '(' + this.validSchemes.join('|') + ')');
 
         var flags = '';
-        Jii._.each({global: 'g', ignoreCase: 'i', multiline: 'm'}, (flag, key) => {
+        _each({global: 'g', ignoreCase: 'i', multiline: 'm'}, (flag, key) => {
             if (this.pattern[key]) {
                 flags += flag;
             }

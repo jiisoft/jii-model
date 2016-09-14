@@ -5,19 +5,18 @@
 
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
+var _isBoolean = require('lodash/isBoolean');
+var _isEmpty = require('lodash/isEmpty');
+var Object = require('jii/base/Object');
 
 /**
  * @class Jii.base.ModelAttributeSchema
  * @extends Jii.base.Object
  */
-Jii.defineClass('Jii.base.ModelAttributeSchema', /** @lends Jii.base.ModelAttributeSchema.prototype */{
+module.exports = Jii.defineClass('Jii.base.ModelAttributeSchema', /** @lends Jii.base.ModelAttributeSchema.prototype */{
 
-	__extends: 'Jii.base.Object',
+	__extends: Object,
 
 	/**
 	 * @var {string} name of this column (without quotes).
@@ -70,7 +69,7 @@ Jii.defineClass('Jii.base.ModelAttributeSchema', /** @lends Jii.base.ModelAttrib
 				return String(value);
 
 			case 'number':
-				return Jii._.isBoolean(value) ?
+				return _isBoolean(value) ?
 					(value ? 1 : 0) :
 					parseFloat(value);
 
@@ -97,7 +96,7 @@ Jii.defineClass('Jii.base.ModelAttributeSchema', /** @lends Jii.base.ModelAttrib
             obj.name = this.name;
         }
 
-        if (Jii._.isEmpty(obj)) {
+        if (_isEmpty(obj)) {
             return this.type;
         }
 

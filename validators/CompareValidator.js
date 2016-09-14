@@ -5,21 +5,17 @@
 
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
-
-require('./Validator');
+var _isArray = require('lodash/isArray');
+var Validator = require('./Validator');
 
 /**
  * @class Jii.validators.CompareValidator
  * @extends Jii.validators.Validator
  */
-Jii.defineClass('Jii.validators.CompareValidator', /** @lends Jii.validators.CompareValidator.prototype */{
+module.exports = Jii.defineClass('Jii.validators.CompareValidator', /** @lends Jii.validators.CompareValidator.prototype */{
 
-	__extends: 'Jii.validators.Validator',
+    __extends: Validator,
 
     compareAttribute: null,
 
@@ -38,7 +34,7 @@ Jii.defineClass('Jii.validators.CompareValidator', /** @lends Jii.validators.Com
         var compareLabel = null;
         var value = object.get(attribute);
 
-        if (Jii._.isArray(value)) {
+        if (_isArray(value)) {
             this.addError(object, attribute, Jii.t('{attribute} is invalid.'));
             return;
         }

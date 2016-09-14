@@ -5,11 +5,39 @@
 
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
+var _isArray = require('lodash/isArray');
+var _isObject = require('lodash/isObject');
+var _isFunction = require('lodash/isFunction');
+var _isString = require('lodash/isString');
+var _indexOf = require('lodash/indexOf');
+var _toArray = require('lodash/toArray');
+var _reduceRight = require('lodash/reduceRight');
+var _groupBy = require('lodash/groupBy');
+var _countBy = require('lodash/countBy');
+var _lastIndexOf = require('lodash/lastIndexOf');
+var _sortedIndex = require('lodash/sortedIndex');
+var _findIndex = require('lodash/findIndex');
+var _findLastIndex = require('lodash/findLastIndex');
+var _has = require('lodash/has');
+var _each = require('lodash/each');
+var _map = require('lodash/map');
+var _filter = require('lodash/filter');
+var _reduce = require('lodash/reduce');
+var _find = require('lodash/find');
+var _reject = require('lodash/reject');
+var _every = require('lodash/every');
+var _some = require('lodash/some');
+var _maxBy = require('lodash/maxBy');
+var _minBy = require('lodash/minBy');
+var _first = require('lodash/first');
+var _initial = require('lodash/initial');
+var _last = require('lodash/last');
+var _drop = require('lodash/drop');
+var _shuffle = require('lodash/shuffle');
+var _sortBy = require('lodash/sortBy');
+var _without = require('lodash/without');
+var Component = require('jii/base/Component');
 
 /**
  * BaseCollection provides a base class that implements the [[CollectionInterface]].
@@ -18,9 +46,9 @@ var Jii = require('jii');
  * @extends Jii.base.Component
  * @extends Array
  */
-Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype */{
+module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype */{
 
-    __extends: 'Jii.base.Component',
+    __extends: Component,
 
     __static: /** @lends Jii.base.Collection */{
 
@@ -83,7 +111,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
     constructor(models, config) {
         this.__super(config);
 
-        if (Jii._.isArray(models)) {
+        if (_isArray(models)) {
             this.add(models);
         }
     },
@@ -100,7 +128,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
      * @param {object|object[]|Jii.base.Model|Jii.base.Model[]} models
      */
     setModels(models) {
-        if (!Jii._.isArray(models)) {
+        if (!_isArray(models)) {
             models = [models];
         }
 
@@ -118,7 +146,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
      * @returns {Jii.base.Model[]}
      */
     add(models, index) {
-        if (!Jii._.isArray(models)) {
+        if (!_isArray(models)) {
             models = [models];
         }
 
@@ -139,7 +167,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
      * @returns {Jii.base.Model[]}
      */
     remove(models) {
-        if (!Jii._.isArray(models)) {
+        if (!_isArray(models)) {
             models = [models];
         }
         if (this.parent) {
@@ -168,12 +196,12 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
         }
 
         // Object format
-        if (Jii._.isObject(name) && !Jii._.has(name, 'modelClass')) {
+        if (_isObject(name) && !_has(name, 'modelClass')) {
             return this.setModels(name);
         }
 
         // Array format
-        if (Jii._.isArray(name)) {
+        if (_isArray(name)) {
             return this.setModels(name);
         }
 
@@ -198,7 +226,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
 
         // Get by pk
         var primaryKey = this._getPrimaryKey(name);
-        if (Jii._.has(this._byId, primaryKey)) {
+        if (_has(this._byId, primaryKey)) {
             return this._byId[primaryKey];
         }
 
@@ -227,11 +255,11 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
         var parentCollection = this.parent || this;
 
         // Function
-        if (Jii._.isFunction(value) || value === null) {
+        if (_isFunction(value) || value === null) {
             if (!this._filter || this._filter !== value) {
                 // Unsubscribe previous
                 if (db && this._filter && this._filter.query && this._filter.attributes) {
-                    Jii._.each(this._filter.attributes, attribute => {
+                    _each(this._filter.attributes, attribute => {
                         parentCollection.off(this.__static.EVENT_CHANGE_NAME + attribute, {
                             context: this,
                             callback: this.refreshFilter
@@ -246,7 +274,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
 
         if (Jii.sql && Jii.sql.Query) {
             // Where object
-            /*if (Jii._.isArray(value) || Jii._.isObject(value)) {
+            /*if (_isArray(value) || _isObject(value)) {
                 value = (new Jii.sql.Query()).where(value);
             }*/
 
@@ -255,7 +283,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
                 if (db) {
                     // Unsubscribe previous
                     if (this._filter && this._filter.query && this._filter.attributes) {
-                        Jii._.each(this._filter.attributes, attribute => {
+                        _each(this._filter.attributes, attribute => {
                             parentCollection.off(this.__static.EVENT_CHANGE_NAME + attribute, {
                                 context: this,
                                 callback: this.refreshFilter
@@ -268,7 +296,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
 
                 if (db) {
                     // Subscribe current
-                    Jii._.each(this._filter.attributes, attribute => {
+                    _each(this._filter.attributes, attribute => {
                         parentCollection.on(this.__static.EVENT_CHANGE_NAME + attribute, {
                             context: this,
                             callback: this.refreshFilter
@@ -291,13 +319,13 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
             // Optimize search by id
             // @todo bad condition.. =(
             var where = this._filter.query ? this._filter.query.getWhere() : null;
-            if (Jii._.isArray(where)
-                && Jii._.isString(where[0])
+            if (_isArray(where)
+                && _isString(where[0])
                 && where[0].toLowerCase() === 'in'
                 && where[1].toString() === Jii.namespace(this.modelClass).primaryKey().toString()) {
-                models = Jii._.map(where[2], id => this._byId[id]);
+                models = _map(where[2], id => this._byId[id]);
             } else {
-                models = Jii._.filter(models, this._filter);
+                models = _filter(models, this._filter);
             }
         }
 
@@ -306,7 +334,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
             this._change(0, diff.add, diff.remove, true);
         }
 
-        Jii._.each(this._childCollections, childCollection => {
+        _each(this._childCollections, childCollection => {
             childCollection.refreshFilter();
         });
     },
@@ -344,7 +372,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
     beginEdit() {
         this._editedLevel++;
 
-        Jii._.each(this._childCollections, childCollection => {
+        _each(this._childCollections, childCollection => {
             childCollection.beginEdit();
         });
     },
@@ -359,7 +387,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
 
         // Cancel in sub-models
         if (this._editedLevel === 0) {
-            Jii._.each(this._childCollections, childCollection => {
+            _each(this._childCollections, childCollection => {
                 childCollection.cancelEdit();
             });
 
@@ -378,12 +406,12 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
 
         if (this._editedLevel === 0) {
             // End in child
-            Jii._.each(this._childCollections, childCollection => {
+            _each(this._childCollections, childCollection => {
                 childCollection.endEdit();
             });
 
             // Each trigger events in children
-            Jii._.each(this._editedEvents,
+            _each(this._editedEvents,
                 /** @param {Jii.model.CollectionEvent} event */
                 event => {
                     if (event.added.length > 0) {
@@ -458,7 +486,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
      */
     reset(models) {
         models = models || [];
-        if (!Jii._.isArray(models)) {
+        if (!_isArray(models)) {
             models = [models];
         }
 
@@ -472,12 +500,12 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
 
     _prepareDiff(models) {
         var toAdd = [];
-        Jii._.each(models, data => {
+        _each(models, data => {
             var finedModels = this._findModels(data);
             if (finedModels.length) {
                 // Convert data to model
-                Jii._.each(this._findModels(data), model => {
-                    if (Jii._.indexOf(toAdd, model) === -1) {
+                _each(this._findModels(data), model => {
+                    if (_indexOf(toAdd, model) === -1) {
                         toAdd.push(model);
                     }
                 });
@@ -487,8 +515,8 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
         });
 
         var toRemove = [];
-        Jii._.each(this.getModels(), model => {
-            if (Jii._.indexOf(toAdd, model) === -1) {
+        _each(this.getModels(), model => {
+            if (_indexOf(toAdd, model) === -1) {
                 toRemove.push(model);
             }
         });
@@ -555,8 +583,8 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
         var isSorted = false;
 
         // Remove
-        Jii._.each(toRemove, data => {
-            Jii._.each(this._findModels(data), model => {
+        _each(toRemove, data => {
+            _each(this._findModels(data), model => {
                 var index = this.indexOf(model);
                 if (index < startIndex) {
                     startIndex--;
@@ -575,21 +603,21 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
         });
 
         // Add
-        Jii._.each(toAdd, data => {
+        _each(toAdd, data => {
             var existsModels = unique ? this._findModels(data) : [];
             var models = existsModels.length > 0 ? existsModels : [this.createModel(data)];
 
             if (this._filter) {
-                models = Jii._.filter(models, this._filter, this);
+                models = _filter(models, this._filter, this);
             }
 
-            Jii._.each(models, model => {
+            _each(models, model => {
                 // Check moving
                 if (existsModels.length > 0) {
                     isSorted = true;
 
                     // Update model attributes
-                    if (model instanceof Jii.base.Model && Jii._.isObject(data) && !(data instanceof Jii.base.Model)) {
+                    if (model instanceof Jii.base.Model && _isObject(data) && !(data instanceof Jii.base.Model)) {
                         model.set(data);
                     }
                 } else {
@@ -607,15 +635,15 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
         });
 
         // Lazy subscribe on added
-        Jii._.each(added, model => {
-            Jii._.each(this._eventsChangeName, arr => {
+        _each(added, model => {
+            _each(this._eventsChangeName, arr => {
                 model.on.apply(model, arr);
             });
         });
 
         // Unsubscribe on removed
-        Jii._.each(removed, model => {
-            Jii._.each(this._eventsChangeName, arr => {
+        _each(removed, model => {
+            _each(this._eventsChangeName, arr => {
                 model.off.apply(model, arr.slice(0, 2));
             });
         });
@@ -630,7 +658,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
         }));
 
         // Change children
-        Jii._.each(this._childCollections, childCollection => {
+        _each(this._childCollections, childCollection => {
             childCollection._change(startIndex, added, removed, true);
         });
 
@@ -665,7 +693,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
      * @returns {string}
      */
     _getPrimaryKey(data) {
-        if (Jii._.isObject(data) && this.modelClass && !(data instanceof Jii.base.ActiveRecord)) {
+        if (_isObject(data) && this.modelClass && !(data instanceof Jii.base.ActiveRecord)) {
             data = this.createModel(data);
         }
 
@@ -673,7 +701,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
             data = data.getPrimaryKey();
         }
 
-        if (Jii._.isObject(data)) {
+        if (_isObject(data)) {
             return JSON.stringify(data);
         }
         return data;
@@ -705,10 +733,10 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
             data = {};
         }
 
-        if (Jii._.isObject(data)) {
+        if (_isObject(data)) {
             var modelClass = this.modelClass;
             modelClass = Jii.namespace(modelClass);
-            if (!Jii._.isFunction(modelClass)) {
+            if (!_isFunction(modelClass)) {
                 throw new Jii.exceptions.InvalidConfigException('Not found model class for create instance in collection, modelClass: ' + this.modelClass);
             }
 
@@ -732,7 +760,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
         // Multiple names support
         name = this._normalizeEventNames(name);
         if (name.length > 1) {
-            Jii._.each(name, n => {
+            _each(name, n => {
                 this.on(n, handler, data, isAppend)
             });
             return;
@@ -764,7 +792,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
         name = this._normalizeEventNames(name);
         if (name.length > 1) {
             var bool = false;
-            Jii._.each(name, n => {
+            _each(name, n => {
                 if (this.on(n, handler)) {
                     bool = true;
                 }
@@ -778,7 +806,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
         var changeNameFormat = this._detectKeyFormatChangeName(name);
         if (changeNameFormat) {
             var changeNameEvent = Jii.base.Model.EVENT_CHANGE_NAME + changeNameFormat.subName;
-            this._eventsChangeName = Jii._.filter(this._eventsChangeName, arr => {
+            this._eventsChangeName = _filter(this._eventsChangeName, arr => {
                 return arr[0] !== changeNameEvent || arr[1] !== handler;
             });
 
@@ -813,7 +841,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
      * @returns {self}
      */
     concat(value1) {
-        this.add(Jii._.toArray(arguments));
+        this.add(_toArray(arguments));
         return this;
     },
 
@@ -875,7 +903,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
     splice(start, deleteCount, model1) {
         var toRemove = Array.prototype.slice.call(this, start, start + deleteCount);
         this.remove(toRemove);
-        this.add(Jii._.toArray(arguments).slice(2), start);
+        this.add(_toArray(arguments).slice(2), start);
         return toRemove;
     },
 
@@ -896,7 +924,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
      * @param {...object} model
      */
     push(model) {
-        this.add(Jii._.toArray(arguments));
+        this.add(_toArray(arguments));
     },
 
     /**
@@ -919,7 +947,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
      * @returns {number}
      */
     unshift(model1) {
-        this.add(Jii._.toArray(arguments), 0);
+        this.add(_toArray(arguments), 0);
         return this.length;
     },
 
@@ -950,71 +978,64 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
     /**
      *
      * @param {function} iteratee
-     * @param {object} [context]
      */
-    each(iteratee, context) {
-        return Jii._.each(this, iteratee, context);
+    each(iteratee) {
+        return _each(this, iteratee);
     },
 
     /**
      *
      * @param {function} iteratee
-     * @param {object} [context]
      */
-    forEach(iteratee, context) {
+    forEach(iteratee) {
         return this.each.apply(this, arguments);
     },
 
     /**
      *
      * @param {function} iteratee
-     * @param {object} [context]
      * @returns {[]}
      */
-    map(iteratee, context) {
-        return Jii._.map(this, iteratee, context);
+    map(iteratee) {
+        return _map(this, iteratee);
     },
 
     /**
      *
      * @param {function} iteratee
      * @param {*} [memo]
-     * @param {object} [context]
      * @returns {[]}
      */
-    reduce(iteratee, memo, context) {
-        return Jii._.reduce(this, iteratee, memo, context);
+    reduce(iteratee, memo) {
+        return _reduce(this, iteratee, memo);
     },
 
     /**
      *
      * @param {function} iteratee
      * @param {*} [memo]
-     * @param {object} [context]
      * @returns {[]}
      */
-    reduceRight(iteratee, memo, context) {
-        return Jii._.reduceRight(this, iteratee, memo, context);
+    reduceRight(iteratee, memo) {
+        return _reduceRight(this, iteratee, memo);
     },
 
     /**
      *
      * @param {function} predicate
-     * @param {object} [context]
      * @returns {object|Jii.base.Model|null}
      */
-    find(predicate, context) {
-        return Jii._.find(this, this._normalizePredicate(predicate), context) || null;
+    find(predicate) {
+        return _find(this, this._normalizePredicate(predicate)) || null;
     },
 
     /**
      *
      * @param {function} predicate
-     * @param {object} [context]
      * @returns {[]}
      */
-    filter(predicate, context) {
-        return Jii._.filter(this, this._normalizePredicate(predicate), context);
+    filter(predicate) {
+        return _filter(this, this._normalizePredicate(predicate));
     },
 
     /**
@@ -1023,7 +1044,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
      * @returns {[]}
      */
     where(properties) {
-        return Jii._.where(this, properties);
+        return _filter(this, properties);
     },
 
     /**
@@ -1032,65 +1053,32 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
      * @returns {object|Jii.base.Model|null}
      */
     findWhere(properties) {
-        return Jii._.findWhere(this, properties) || null;
+        return _find(this, properties) || null;
     },
 
     /**
      *
      * @param {function} predicate
-     * @param {object} [context]
      * @returns {[]}
      */
-    reject(predicate, context) {
-        return Jii._.reject(this, this._normalizePredicate(predicate), context);
+    reject(predicate) {
+        return _reject(this, this._normalizePredicate(predicate));
     },
 
     /**
      *
      * @param {function} [predicate]
-     * @param {boolean} [context]
      */
-    every(predicate, context) {
-        return Jii._.every(this, this._normalizePredicate(predicate), context);
+    every(predicate) {
+        return _every(this, this._normalizePredicate(predicate));
     },
 
     /**
      *
      * @param {function} [predicate]
-     * @param {boolean} [context]
      */
-    some(predicate, context) {
-        return Jii._.some(this, this._normalizePredicate(predicate), context);
-    },
-
-    /**
-     *
-     * @param {object} value
-     * @param {number} [fromIndex]
-     */
-    contains(value, fromIndex) {
-        return Jii._.contains(this, value, fromIndex);
-    },
-
-    /**
-     *
-     * @param {object} value
-     * @param {number} [fromIndex]
-     */
-    includes(value, fromIndex) {
-        return this.contains.apply(this, arguments);
-    },
-
-    /**
-     *
-     * @param {string} [methodName]
-     * @param {...*} [methodParam]
-     * @returns {Array}
-     */
-    invoke(methodName, methodParam) {
-        var args = Jii._.toArray(arguments);
-        args.unshift(this);
-        return Jii._.invoke.apply(Jii._, args);
+    some(predicate) {
+        return _some(this, this._normalizePredicate(predicate));
     },
 
     /**
@@ -1099,41 +1087,38 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
      * @returns {Array}
      */
     pluck(propertyName) {
-        return Jii._.map(this, model => Jii._.isFunction(model.get) ? model.get(propertyName) : model[propertyName]);
+        return _map(this, model => _isFunction(model.get) ? model.get(propertyName) : model[propertyName]);
     },
 
     /**
      *
      * @param {function} [iteratee]
-     * @param {object} [context]
      * @returns {object}
      */
-    max(iteratee, context) {
-        return Jii._.max(this, iteratee, context);
+    max(iteratee) {
+        return _maxBy(this, iteratee);
     },
 
     /**
      *
      * @param {function} [iteratee]
-     * @param {object} [context]
      * @returns {object}
      */
-    min(iteratee, context) {
-        return Jii._.min(this, iteratee, context);
+    min(iteratee) {
+        return _minBy(this, iteratee);
     },
 
     /**
      *
      * @param {string|function} value
-     * @param [context]
      * @returns {[]}
      */
-    sortBy(value, context) {
-        var iterator = Jii._.isFunction(value) ?
+    sortBy(value) {
+        var iterator = _isFunction(value) ?
             value :
-            model => Jii._.isFunction(model.get) ? model.get(value) : model[value];
+            model => _isFunction(model.get) ? model.get(value) : model[value];
 
-        Jii._.each(Jii._.sortBy(this, iterator, context), (model, i) => {
+        _each(_sortBy(this, iterator), (model, i) => {
             this[i] = model;
         });
         this._onSort();
@@ -1142,43 +1127,40 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
     /**
      *
      * @param {string|function} value
-     * @param [context]
      * @returns {[]}
      */
-    groupBy(value, context) {
-        var iterator = Jii._.isFunction(value) ?
+    groupBy(value) {
+        var iterator = _isFunction(value) ?
             value :
-            model => Jii._.isFunction(model.get) ? model.get(value) : model[value];
+            model => _isFunction(model.get) ? model.get(value) : model[value];
 
-        return Jii._.groupBy(this, iterator, context);
+        return _groupBy(this, iterator);
     },
 
     /**
      *
      * @param {string|function} value
-     * @param [context]
      * @returns {[]}
      */
-    indexBy(value, context) {
-        var iterator = Jii._.isFunction(value) ?
+    /*indexBy(value) {
+        var iterator = _isFunction(value) ?
             value :
-            model => Jii._.isFunction(model.get) ? model.get(value) : model[value];
+            model => _isFunction(model.get) ? model.get(value) : model[value];
 
-        return Jii._.indexBy(this, iterator, context);
-    },
+        return _indexBy(this, iterator);
+    },*/
 
     /**
      *
      * @param {string|function} value
-     * @param [context]
      * @returns {[]}
      */
-    countBy(value, context) {
-        var iterator = Jii._.isFunction(value) ?
+    countBy(value) {
+        var iterator = _isFunction(value) ?
             value :
-            model => Jii._.isFunction(model.get) ? model.get(value) : model[value];
+            model => _isFunction(model.get) ? model.get(value) : model[value];
 
-        return Jii._.countBy(this, iterator, context);
+        return _countBy(this, iterator);
     },
 
     /**
@@ -1195,7 +1177,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
      * @returns {number}
      */
     first(num) {
-        return Jii._.first(this, num);
+        return _first(this, num);
     },
 
     /**
@@ -1204,7 +1186,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
      * @returns {[]}
      */
     initial(num) {
-        return Jii._.initial(this, num);
+        return _initial(this, num);
     },
 
     /**
@@ -1213,7 +1195,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
      * @returns {number}
      */
     last(num) {
-        return Jii._.last(this, num);
+        return _last(this, num);
     },
 
     /**
@@ -1222,7 +1204,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
      * @returns {number}
      */
     rest(index) {
-        return Jii._.rest(this, index);
+        return _drop(this, index);
     },
 
     /**
@@ -1231,9 +1213,9 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
      * @returns {[]}
      */
     without(value) {
-        var args = Jii._.toArray(arguments);
+        var args = _toArray(arguments);
         args.unshift(this);
-        return Jii._.without.apply(Jii._, args);
+        return _without.apply(null, args);
     },
 
     /**
@@ -1243,7 +1225,7 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
      * @returns {number}
      */
     indexOf(value, isSorted) {
-        return Jii._.indexOf(this, value, isSorted);
+        return _indexOf(this, value, isSorted);
     },
 
     /**
@@ -1253,49 +1235,46 @@ Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype 
      * @returns {object}
      */
     lastIndexOf(value, fromIndex) {
-        return Jii._.lastIndexOf(this, value, fromIndex);
+        return _lastIndexOf(this, value, fromIndex);
     },
 
     /**
      *
      * @param {object} model
      * @param {*} value
-     * @param {object} [context]
      * @returns {number}
      */
-    sortedIndex(model, value, context) {
-        var iterator = Jii._.isFunction(value) ?
+    /*sortedIndex(model, value) {
+        var iterator = _isFunction(value) ?
             value :
-            model => Jii._.isFunction(model.get) ? model.get(value) : model[value];
+            model => _isFunction(model.get) ? model.get(value) : model[value];
 
-        return Jii._.sortedIndex(this, model, iterator, context);
+        return _sortedIndex(this, model, iterator);
+    },*/
+
+    /**
+     *
+     * @param {function} predicate
+     * @returns {number}
+     */
+    findIndex(predicate) {
+        return _findIndex(this, this._normalizePredicate(predicate));
     },
 
     /**
      *
      * @param {function} predicate
-     * @param {object} [context]
      * @returns {number}
      */
-    findIndex(predicate, context) {
-        return Jii._.findIndex(this, this._normalizePredicate(predicate), context);
-    },
-
-    /**
-     *
-     * @param {function} predicate
-     * @param {object} [context]
-     * @returns {number}
-     */
-    findLastIndex(predicate, context) {
-        return Jii._.findLastIndex(this, this._normalizePredicate(predicate), context);
+    findLastIndex(predicate) {
+        return _findLastIndex(this, this._normalizePredicate(predicate));
     },
 
     /**
      *
      */
     shuffle() {
-        Jii._.shuffle(this);
+        _shuffle(this);
     },
 
     /**
