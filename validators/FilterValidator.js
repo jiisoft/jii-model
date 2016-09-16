@@ -6,6 +6,7 @@
 'use strict';
 
 var Jii = require('jii');
+var ApplicationException = require('jii/exceptions/ApplicationException');
 var Validator = require('./Validator');
 
 /**
@@ -23,7 +24,7 @@ module.exports = Jii.defineClass('Jii.validators.FilterValidator', /** @lends Ji
     init() {
         this.__super();
         if (this.filter === null) {
-            throw new Jii.exceptions.ApplicationException('The `filter` property must be set.');
+            throw new ApplicationException('The `filter` property must be set.');
         }
     },
 

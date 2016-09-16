@@ -6,6 +6,7 @@
 'use strict';
 
 var Jii = require('jii');
+var ApplicationException = require('jii/exceptions/ApplicationException');
 var _isFunction = require('lodash/isFunction');
 var _isObject = require('lodash/isObject');
 var _isArray = require('lodash/isArray');
@@ -96,7 +97,7 @@ module.exports = Jii.defineClass('Jii.validators.Validator', /** @lends Jii.vali
     },
 
     validateValue() {
-        throw new Jii.exceptions.ApplicationException('Not found implementation for method `validateValue()`.');
+        throw new ApplicationException('Not found implementation for method `validateValue()`.');
     },
 
     validate(object, attributes) {

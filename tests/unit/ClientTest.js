@@ -3,6 +3,10 @@ require('./models/Article');
 require('./models/User');
 require('./models/Link');
 
+var Collection = require('jii-model/base/Collection');
+var UnknownPropertyException = require('jii/exceptions/UnknownPropertyException');
+var InvalidParamException = require('jii/exceptions/InvalidParamException');
+
 global.tests = Jii.namespace('tests');
 
 /**
@@ -49,7 +53,7 @@ var self = Jii.defineClass('tests.unit.ClientTest', {
         test.strictEqual(article.get('user').get('name'), 'John');
         test.strictEqual(article.get('links').length, 2);
         test.strictEqual(article.get('links').className(), 'Jii.base.Collection');
-        test.strictEqual(article.get('links') instanceof Jii.base.Collection, true);
+        test.strictEqual(article.get('links') instanceof Collection, true);
         test.strictEqual(article.get('links').at(0).get('title'), 'Example');
         test.strictEqual(article.get('links').at(1).get('id'), 11);
 
@@ -79,13 +83,13 @@ var self = Jii.defineClass('tests.unit.ClientTest', {
         // Throw on set property of null model
         test.throws(function() {
             article.set('links[10].url', 'http://none.net');
-        }, Jii.exceptions.UnknownPropertyException);
+        }, UnknownPropertyException);
         test.throws(function() {
             article.set('links[10].notexists', 'http://none.net');
-        }, Jii.exceptions.UnknownPropertyException);
+        }, UnknownPropertyException);
         test.throws(function() {
             article.set('links.notexists', 'http://none.net');
-        }, Jii.exceptions.InvalidParamException);
+        }, InvalidParamException);
 
         test.done();
     },

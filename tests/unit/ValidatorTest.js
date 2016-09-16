@@ -1,6 +1,21 @@
 require('./bootstrap');
 require('./models/FakeValidationModel');
 
+var BooleanValidator = require('jii-model/validators/BooleanValidator');
+var CompareValidator = require('jii-model/validators/CompareValidator');
+var DateValidator = require('jii-model/validators/DateValidator');
+var DefaultValueValidator = require('jii-model/validators/DefaultValueValidator');
+var EmailValidator = require('jii-model/validators/EmailValidator');
+var FilterValidator = require('jii-model/validators/FilterValidator');
+var InlineValidator = require('jii-model/validators/InlineValidator');
+var RequiredValidator = require('jii-model/validators/RequiredValidator');
+var SafeValidator = require('jii-model/validators/SafeValidator');
+var StringValidator = require('jii-model/validators/StringValidator');
+var UrlValidator = require('jii-model/validators/UrlValidator');
+var NumberValidator = require('jii-model/validators/NumberValidator');
+var RangeValidator = require('jii-model/validators/RangeValidator');
+var RegularExpressionValidator = require('jii-model/validators/RegularExpressionValidator');
+
 /**
  * @class tests.unit.ValidatorTest
  * @extends Jii.base.UnitTest
@@ -34,7 +49,7 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
     },
 
     booleanValidatorTest: function (test) {
-        var validator = new Jii.validators.BooleanValidator();
+        var validator = new BooleanValidator();
         this._assertTrue(test, validator, [true, false, 1, 0, '1', '0']);
         this._assertFalse(test, validator, ['text..', [], null]);
         validator.strict = true;
@@ -49,13 +64,13 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
         model.set('foo', 'test');
 
         // Attribute
-        var validator = new Jii.validators.CompareValidator();
+        var validator = new CompareValidator();
         validator.compareAttribute = 'bar';
         model.set('bar', 'test');
         validator.validateAttribute(model, 'foo');
         test.strictEqual(model.hasErrors(), false);
 
-        var validator = new Jii.validators.CompareValidator();
+        var validator = new CompareValidator();
         validator.compareAttribute = 'bar';
         model.set('bar', 'test222');
         validator.validateAttribute(model, 'foo');
@@ -71,7 +86,7 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
     },
 
     dateValidatorTest: function (test) {
-        var validator = new Jii.validators.DateValidator();
+        var validator = new DateValidator();
         this._assertTrue(test, validator, ['2013-03-04']);
         this._assertFalse(test, validator, ['text..']);
 
@@ -88,7 +103,7 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
         var model = new tests.unit.models.FakeValidationModel();
         model.set('foo', 'test');
 
-        var validator = new Jii.validators.DefaultValueValidator();
+        var validator = new DefaultValueValidator();
         validator.value = 'test222';
         validator.validateAttribute(model, 'foo');
         test.strictEqual(model.get('foo'), 'test');
@@ -101,7 +116,7 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
     },
 
     emailValidatorTest: function (test) {
-        var validator = new Jii.validators.EmailValidator();
+        var validator = new EmailValidator();
         this._assertTrue(test, validator, ['test@example.com']);
         this._assertFalse(test, validator, ['text..']);
 
@@ -110,7 +125,7 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
 
     filterValidatorTest: function (test) {
         var model = new tests.unit.models.FakeValidationModel();
-        var validator = new Jii.validators.FilterValidator({
+        var validator = new FilterValidator({
             filter: function(value) {
                 return value * 2;
             }
@@ -129,7 +144,7 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
             test.strictEqual(params.param1, 'value1');
             this.addError(attribute, 'test error');
         };
-        var validator = new Jii.validators.InlineValidator({
+        var validator = new InlineValidator({
             method: 'checkFoo',
             params: {
                 param1: 'value1'
@@ -145,7 +160,7 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
     numberValidatorTest: function (test) {
 		var validator;
 
-        validator = new Jii.validators.NumberValidator();
+        validator = new NumberValidator();
         this._assertTrue(test, validator, [20, 0, -20, '20', 25.45]);
         this._assertFalse(test, validator, ['25,45', '12:45']);
 
@@ -154,7 +169,7 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
         this._assertFalse(test, validator, [25.45, '25,45', '0x14']);
 
 
-        validator = new Jii.validators.NumberValidator({
+        validator = new NumberValidator({
             min: -10,
             max: 5
         });
@@ -165,7 +180,7 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
     },
 
     rangeValidatorTest: function (test) {
-        var validator = new Jii.validators.RangeValidator({
+        var validator = new RangeValidator({
             range: [1, 2, 'test']
         });
         this._assertTrue(test, validator, [1, 2, '1', '2', 'test']);
@@ -183,7 +198,7 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
     },
 
     regularExpressionValidatorTest: function (test) {
-        var validator = new Jii.validators.RegularExpressionValidator({
+        var validator = new RegularExpressionValidator({
             pattern: /^[a-z]+[0-9]$/
         });
         this._assertTrue(test, validator, ['aaa4', 'a1']);
@@ -198,7 +213,7 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
 
     requiredValidatorTest: function (test) {
         var model = new tests.unit.models.FakeValidationModel();
-        var validator = new Jii.validators.RequiredValidator();
+        var validator = new RequiredValidator();
 
         model.set('foo', 'text..');
         validator.validateAttribute(model, 'foo');
@@ -213,7 +228,7 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
 
     safeValidatorTest: function (test) {
         var model = new tests.unit.models.FakeValidationModel();
-        var validator = new Jii.validators.SafeValidator();
+        var validator = new SafeValidator();
 
         validator.validateAttribute(model, 'foo');
         test.strictEqual(model.hasErrors(), false);
@@ -224,25 +239,25 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
     stringValidatorTest: function (test) {
 		var validator;
 
-        validator = new Jii.validators.StringValidator({
+        validator = new StringValidator({
             length: 4
         });
         this._assertTrue(test, validator, ['aaaa', '€€€€']);
         this._assertFalse(test, validator, ['aa', 'q']);
 
-        validator = new Jii.validators.StringValidator({
+        validator = new StringValidator({
             length: [4]
         });
         this._assertTrue(test, validator, ['aaaa', 'aaabbb']);
         this._assertFalse(test, validator, ['aa', '']);
 
-        validator = new Jii.validators.StringValidator({
+        validator = new StringValidator({
             length: [1, 5]
         });
         this._assertTrue(test, validator, ['a', 'aa', 'aaaaa']);
         this._assertFalse(test, validator, ['', 'aaabbb']);
 
-        validator = new Jii.validators.StringValidator({
+        validator = new StringValidator({
             length: [3, 8],
             min: 1,
             max: 5
@@ -256,11 +271,11 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
     urlValidatorTest: function (test) {
 		var validator;
 
-        validator = new Jii.validators.UrlValidator();
+        validator = new UrlValidator();
         this._assertTrue(test, validator, ['http://google.de', 'https://google.de', 'https://www.google.de/search?q=yii+framework&ie=utf-8&oe=utf-8&rls=org.mozilla:de:official&client=firefox-a&gws_rd=cr']);
         this._assertFalse(test, validator, ['google.de', 'htp://yiiframework.com', 'ftp://ftp.ruhr-uni-bochum.de/', 'http://invalid,domain', 'http://äüö?=!"§$%&/()=}][{³²€.edu']);
 
-        validator = new Jii.validators.UrlValidator({
+        validator = new UrlValidator({
             defaultScheme: 'https'
         });
         this._assertTrue(test, validator, ['yiiframework.com', 'http://yiiframework.com']);

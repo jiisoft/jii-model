@@ -8,6 +8,14 @@ require('./models/LinkData');
 
 var _each = require('lodash/each');
 var _extend = require('lodash/extend');
+var ApplicationException = require('jii/exceptions/ApplicationException');
+var InvalidParamException = require('jii/exceptions/InvalidParamException');
+var ChangeAttributeEvent = require('jii-model/model/ChangeAttributeEvent');
+var ChangeEvent = require('jii-model/model/ChangeEvent');
+var Model = require('jii-model/base/Model');
+var Collection = require('jii-model/base/Collection');
+var CollectionEvent = require('jii-model/model/CollectionEvent');
+var FilterBuilder = require('jii-ar-sql/FilterBuilder');
 
 global.tests = Jii.namespace('tests');
 
@@ -48,7 +56,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
             // Check try set unknow attribute
             test.throws(function () {
                 sampleModel.set('unknow', '...');
-            }, Jii.exceptions.ApplicationException);
+            }, ApplicationException);
         });
 
         test.done();
@@ -141,9 +149,9 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
          * @param {Jii.model.ChangeEvent|Jii.model.ChangeAttributeEvent} event
          */
         var eventsFn = function(event) {
-            if (event instanceof Jii.model.ChangeAttributeEvent) {
+            if (event instanceof ChangeAttributeEvent) {
                 events.push(event.attribute);
-            } else if (event instanceof Jii.model.ChangeEvent) {
+            } else if (event instanceof ChangeEvent) {
                 events.push.apply(events, Object.keys(event.changedAttributes));
             }
         };
@@ -235,11 +243,11 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
          * @param {Jii.model.CollectionEvent|Jii.model.ChangeAttributeEvent|Jii.model.ChangeEvent} event
          */
         var eventsFn = function(event) {
-            if (event instanceof Jii.model.ChangeAttributeEvent) {
+            if (event instanceof ChangeAttributeEvent) {
                 events.push(event.attribute);
-            } else if (event instanceof Jii.model.ChangeEvent) {
+            } else if (event instanceof ChangeEvent) {
                 events.push.apply(events, Object.keys(event.changedAttributes));
-            } else if (event instanceof Jii.model.CollectionEvent) {
+            } else if (event instanceof CollectionEvent) {
                 _each(event.added, function(model) {
                     events.push('added-' + model.getPrimaryKey());
                 });
@@ -284,7 +292,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         article = new tests.unit.models.Article();
         test.throws(function() {
             article.on('change:links[0]', eventsFn);
-        }, Jii.exceptions.InvalidParamException);
+        }, InvalidParamException);
 
         // Sub-collection, change:key any, exists: change:links.url
         article = new tests.unit.models.Article({
@@ -343,7 +351,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         article = new tests.unit.models.Article();
         test.throws(function() {
             article.on('change:links[0].url', eventsFn);
-        }, Jii.exceptions.InvalidParamException);
+        }, InvalidParamException);
 
         // Sub-collection, change:key.subKey any, exists: change:links.url.data
         article = new tests.unit.models.Article({
@@ -420,11 +428,11 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
          * @param {Jii.model.CollectionEvent|Jii.model.ChangeAttributeEvent|Jii.model.ChangeEvent} event
          */
         var eventsFn = function(event) {
-            if (event instanceof Jii.model.ChangeAttributeEvent) {
+            if (event instanceof ChangeAttributeEvent) {
                 events.push(event.attribute);
-            } else if (event instanceof Jii.model.ChangeEvent) {
+            } else if (event instanceof ChangeEvent) {
                 events.push.apply(events, Object.keys(event.changedAttributes));
-            } else if (event instanceof Jii.model.CollectionEvent) {
+            } else if (event instanceof CollectionEvent) {
                 _each(event.added, function(model) {
                     events.push('added-' + JSON.stringify(model.getPrimaryKey()));
                 });
@@ -463,9 +471,9 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
          * @param {Jii.model.CollectionEvent|Jii.model.ChangeAttributeEvent|Jii.model.ChangeEvent} event
          */
         var eventsFn = function(event) {
-            if (event instanceof Jii.model.ChangeAttributeEvent) {
+            if (event instanceof ChangeAttributeEvent) {
                 events.push(event.attribute);
-            } else if (event instanceof Jii.model.ChangeEvent) {
+            } else if (event instanceof ChangeEvent) {
                 events.push.apply(events, Object.keys(event.changedAttributes));
             }
         };
@@ -505,9 +513,9 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
          * @param {Jii.model.CollectionEvent|Jii.model.ChangeAttributeEvent|Jii.model.ChangeEvent} event
          */
         var eventsFn = function(event) {
-            if (event instanceof Jii.model.ChangeAttributeEvent) {
+            if (event instanceof ChangeAttributeEvent) {
                 events.push(event.attribute);
-            } else if (event instanceof Jii.model.ChangeEvent) {
+            } else if (event instanceof ChangeEvent) {
                 events.push.apply(events, Object.keys(event.changedAttributes));
             }
         };
@@ -516,13 +524,13 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         tests.unit.models.Article.getDb = tests.unit.models.User.getDb = function() {
             return {
                 getRootCollection: function(name) {
-                    rootCollections[name] = rootCollections[name] || new Jii.base.Collection([], {modelClass: name});
+                    rootCollections[name] = rootCollections[name] || new Collection([], {modelClass: name});
                     return rootCollections[name];
                 },
                 getSchema: function() {
                     return {
                         getFilterBuilder: function() {
-                            return new Jii.sql.FilterBuilder();
+                            return new FilterBuilder();
                         }
                     }
                 }
@@ -585,11 +593,11 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
          * @param {Jii.model.CollectionEvent|Jii.model.ChangeAttributeEvent|Jii.model.ChangeEvent} event
          */
         var eventsFn = function(event) {
-            if (event instanceof Jii.model.ChangeAttributeEvent) {
+            if (event instanceof ChangeAttributeEvent) {
                 events.push(event.attribute);
-            } else if (event instanceof Jii.model.ChangeEvent) {
+            } else if (event instanceof ChangeEvent) {
                 events.push.apply(events, Object.keys(event.changedAttributes));
-            } else if (event instanceof Jii.model.CollectionEvent) {
+            } else if (event instanceof CollectionEvent) {
                 _each(event.added, function(model) {
                     events.push('added-' + JSON.stringify(model.getPrimaryKey()));
                 });
@@ -603,13 +611,13 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         tests.unit.models.Article.getDb = tests.unit.models.Link.getDb = function() {
             return {
                 getRootCollection: function(name) {
-                    rootCollections[name] = rootCollections[name] || new Jii.base.Collection([], {modelClass: name});
+                    rootCollections[name] = rootCollections[name] || new Collection([], {modelClass: name});
                     return rootCollections[name];
                 },
                 getSchema: function() {
                     return {
                         getFilterBuilder: function() {
-                            return new Jii.sql.FilterBuilder();
+                            return new FilterBuilder();
                         }
                     }
                 }

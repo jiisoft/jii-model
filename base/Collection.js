@@ -6,6 +6,11 @@
 'use strict';
 
 var Jii = require('jii');
+var InvalidParamException = require('jii/exceptions/InvalidParamException');
+var Query = require('jii-ar-sql/Query');
+var CollectionEvent = require('../model/CollectionEvent');
+var InvalidConfigException = require('jii/exceptions/InvalidConfigException');
+var NotSupportedException = require('jii/exceptions/NotSupportedException');
 var _isArray = require('lodash/isArray');
 var _isObject = require('lodash/isObject');
 var _isFunction = require('lodash/isFunction');
@@ -192,7 +197,7 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
                 return model.set(indexFormat.subName, value);
             }
 
-            throw new Jii.exceptions.InvalidParamException('Not found model with index `' + indexFormat.index + '` for set attribute `' + indexFormat.subName + '`.');
+            throw new InvalidParamException('Not found model with index `' + indexFormat.index + '` for set attribute `' + indexFormat.subName + '`.');
         }
 
         // Object format
@@ -275,11 +280,11 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
         if (Jii.sql && Jii.sql.Query) {
             // Where object
             /*if (_isArray(value) || _isObject(value)) {
-                value = (new Jii.sql.Query()).where(value);
+                value = (new Query()).where(value);
             }*/
 
             // Query instance
-            if (value instanceof Jii.sql.Query && (!this._filter || this._filter.query !== value)) {
+            if (value instanceof Query && (!this._filter || this._filter.query !== value)) {
                 if (db) {
                     // Unsubscribe previous
                     if (this._filter && this._filter.query && this._filter.attributes) {
@@ -596,7 +601,8 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
                 Array.prototype.splice.call(this, index, 1);
 
                 // By id
-                if (model instanceof Jii.base.ActiveRecord) {
+                var ActiveRecord = require('./ActiveRecord');
+                if (model instanceof ActiveRecord) {
                     delete this._byId[this._getPrimaryKey(model)];
                 }
             });
@@ -617,7 +623,8 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
                     isSorted = true;
 
                     // Update model attributes
-                    if (model instanceof Jii.base.Model && _isObject(data) && !(data instanceof Jii.base.Model)) {
+                    var Model = require('./Model');
+                    if (model instanceof Model && _isObject(data) && !(data instanceof Model)) {
                         model.set(data);
                     }
                 } else {
@@ -627,7 +634,8 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
                     Array.prototype.splice.call(this, startIndex++, 0, model);
 
                     // By id
-                    if (model instanceof Jii.base.ActiveRecord) {
+                    var ActiveRecord = require('./ActiveRecord');
+                    if (model instanceof ActiveRecord) {
                         this._byId[this._getPrimaryKey(model)] = model;
                     }
                 }
@@ -652,7 +660,7 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
         this.beginEdit();
 
         // Trigger events
-        this._editedEvents.push(new Jii.model.CollectionEvent({
+        this._editedEvents.push(new CollectionEvent({
             added: added,
             removed: removed
         }));
@@ -693,11 +701,12 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
      * @returns {string}
      */
     _getPrimaryKey(data) {
-        if (_isObject(data) && this.modelClass && !(data instanceof Jii.base.ActiveRecord)) {
+        var ActiveRecord = require('./ActiveRecord');
+        if (_isObject(data) && this.modelClass && !(data instanceof ActiveRecord)) {
             data = this.createModel(data);
         }
 
-        if (data instanceof Jii.base.ActiveRecord) {
+        if (data instanceof ActiveRecord) {
             data = data.getPrimaryKey();
         }
 
@@ -714,7 +723,8 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
      */
     createModel(data) {
         // Already model
-        if (data instanceof Jii.base.Model) {
+        var Model = require('./Model');
+        if (data instanceof Model) {
             return data;
         }
 
@@ -725,7 +735,7 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
 
         // Required
         if (this.modelClass === null) {
-            Jii.exceptions.InvalidConfigException('Property `modelClass` in collection is required (or set false to force disable).');
+            InvalidConfigException('Property `modelClass` in collection is required (or set false to force disable).');
         }
 
         // Empty model
@@ -737,13 +747,13 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
             var modelClass = this.modelClass;
             modelClass = Jii.namespace(modelClass);
             if (!_isFunction(modelClass)) {
-                throw new Jii.exceptions.InvalidConfigException('Not found model class for create instance in collection, modelClass: ' + this.modelClass);
+                throw new InvalidConfigException('Not found model class for create instance in collection, modelClass: ' + this.modelClass);
             }
 
             return new modelClass(data);
         }
 
-        throw new Jii.exceptions.InvalidParamException('Cannot create model instance from data: ' + JSON.stringify(data));
+        throw new InvalidParamException('Cannot create model instance from data: ' + JSON.stringify(data));
     },
 
     _onSort() {
@@ -771,7 +781,8 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
         // Attributes in models
         var changeNameFormat = this._detectKeyFormatChangeName(name);
         if (changeNameFormat) {
-            var changeNameEvent = Jii.base.Model.EVENT_CHANGE_NAME + changeNameFormat.subName;
+            var Model = require('./Model');
+            var changeNameEvent = Model.EVENT_CHANGE_NAME + changeNameFormat.subName;
             this._eventsChangeName.push([changeNameEvent, handler, data, isAppend]);
             this.each(model => {
                 model.on(changeNameEvent, handler, data, isAppend);
@@ -805,7 +816,8 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
         // Attributes in models
         var changeNameFormat = this._detectKeyFormatChangeName(name);
         if (changeNameFormat) {
-            var changeNameEvent = Jii.base.Model.EVENT_CHANGE_NAME + changeNameFormat.subName;
+            var Model = require('./Model');
+            var changeNameEvent = Model.EVENT_CHANGE_NAME + changeNameFormat.subName;
             this._eventsChangeName = _filter(this._eventsChangeName, arr => {
                 return arr[0] !== changeNameEvent || arr[1] !== handler;
             });
@@ -873,7 +885,7 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
      */
     join() {
         // @todo
-        throw new Jii.exceptions.NotSupportedException();
+        throw new NotSupportedException();
     },
 
     /**
@@ -881,7 +893,7 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
      */
     toString() {
         // @todo
-        throw new Jii.exceptions.NotSupportedException();
+        throw new NotSupportedException();
     },
 
     /**
@@ -889,7 +901,7 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
      */
     toLocaleString() {
         // @todo
-        throw new Jii.exceptions.NotSupportedException();
+        throw new NotSupportedException();
     },
 
     /**
@@ -1297,7 +1309,7 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
                 predicate.query = query;
                 predicate.attributes = filterBuilder.attributes(query);
             } else {
-                throw new Jii.exceptions.InvalidConfigException('Not found db component in model.');
+                throw new InvalidConfigException('Not found db component in model.');
             }
         }
 

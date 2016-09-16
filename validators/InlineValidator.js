@@ -6,6 +6,7 @@
 'use strict';
 
 var Jii = require('jii');
+var ApplicationException = require('jii/exceptions/ApplicationException');
 var _isFunction = require('lodash/isFunction');
 var Validator = require('./Validator');
 
@@ -32,7 +33,7 @@ module.exports = Jii.defineClass('Jii.validators.InlineValidator', /** @lends Ji
         var method = object[this.method];
 
         if (!_isFunction(method)) {
-            throw new Jii.exceptions.ApplicationException('Not find method `' + this.method + '` in model `' + object.debugClassName + '`.');
+            throw new ApplicationException('Not find method `' + this.method + '` in model `' + object.debugClassName + '`.');
         }
 
         return method.call(object, attribute, this.params || {});

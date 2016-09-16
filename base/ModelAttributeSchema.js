@@ -6,6 +6,8 @@
 'use strict';
 
 var Jii = require('jii');
+var BaseSchema = require('jii-ar-sql/server/BaseSchema');
+var Expression = require('jii-ar-sql/Expression');
 var _isBoolean = require('lodash/isBoolean');
 var _isEmpty = require('lodash/isEmpty');
 var Object = require('jii/base/Object');
@@ -53,14 +55,14 @@ module.exports = Jii.defineClass('Jii.base.ModelAttributeSchema', /** @lends Jii
 	 * @return {*} converted value
 	 */
 	typecast(value) {
-		if (value === '' && this.type !== Jii.sql.BaseSchema.TYPE_TEXT &&
-			this.type !== Jii.sql.BaseSchema.TYPE_STRING &&
-			this.type !== Jii.sql.BaseSchema.TYPE_BINARY) {
+		if (value === '' && this.type !== BaseSchema.TYPE_TEXT &&
+			this.type !== BaseSchema.TYPE_STRING &&
+			this.type !== BaseSchema.TYPE_BINARY) {
 			return null;
 		}
 
 		// @todo php->js types
-		if (value === null || typeof(value) === this.jsType || value instanceof Jii.sql.Expression) {
+		if (value === null || typeof(value) === this.jsType || value instanceof Expression) {
 			return value;
 		}
 

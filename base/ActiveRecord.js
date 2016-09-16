@@ -6,6 +6,16 @@
 'use strict';
 
 var Jii = require('jii');
+var Event = require('jii/base/Event');
+var ModelSchema = require('./ModelSchema');
+var InvalidConfigException = require('jii/exceptions/InvalidConfigException');
+var NotSupportedException = require('jii/exceptions/NotSupportedException');
+var ChangeAttributeEvent = require('../model/ChangeAttributeEvent');
+var InvalidParamException = require('jii/exceptions/InvalidParamException');
+var ModelEvent = require('jii/base/ModelEvent');
+var AfterSaveEvent = require('jii-ar-sql/AfterSaveEvent');
+var InvalidCallException = require('jii/exceptions/InvalidCallException');
+var Collection = require('../base/Collection');
 var _upperFirst = require('lodash/upperFirst');
 var _isArray = require('lodash/isArray');
 var _isObject = require('lodash/isObject');
@@ -105,8 +115,8 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
             if (this._modelSchema === null) {
                 this._modelSchema = this.modelSchema();
 
-                if (!(this._modelSchema instanceof Jii.base.ModelSchema)) {
-                    this._modelSchema = Jii.base.ModelSchema.createFromObject(this._modelSchema);
+                if (!(this._modelSchema instanceof ModelSchema)) {
+                    this._modelSchema = ModelSchema.createFromObject(this._modelSchema);
                 }
             }
             return this._modelSchema;
@@ -137,7 +147,8 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
          */
         find() {
             // @todo
-            return new Jii.sql.ActiveQuery(this);
+			var ActiveQuery = require('jii-ar-sql/ActiveQuery');
+            return new ActiveQuery(this);
         },
 
         /**
@@ -198,7 +209,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 					return conditionObject;
 				}
 
-				throw new Jii.exceptions.InvalidConfigException(this.className() + ' must have a primary key.');
+				throw new InvalidConfigException(this.className() + ' must have a primary key.');
 			}).then(condition => {
 				query.andWhere(condition);
 
@@ -223,7 +234,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 		updateAll(attributes, condition) {
 			condition = condition || '';
 
-			throw new Jii.exceptions.NotSupportedException('updateAll() is not supported.');
+			throw new NotSupportedException('updateAll() is not supported.');
 		},
 
 		/**
@@ -244,7 +255,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 		updateAllCounters(counters, condition) {
 			condition = condition || '';
 
-			throw new Jii.exceptions.NotSupportedException('updateAllCounters() is not supported.');
+			throw new NotSupportedException('updateAllCounters() is not supported.');
 		},
 
 		/**
@@ -267,7 +278,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 			condition = condition || '';
 			params = params || [];
 
-			throw new Jii.exceptions.NotSupportedException('deleteAll() is not supported.');
+			throw new NotSupportedException('deleteAll() is not supported.');
 		},
 
 		/**
@@ -456,7 +467,8 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 		}
 
 		var relation = this.getRelation(name);
-		if (relation instanceof Jii.sql.ActiveQuery) {
+		var ActiveQuery = require('jii-ar-sql/ActiveQuery');
+		if (relation instanceof ActiveQuery) {
 			return relation.findFor(name, this).then(models => {
                 this._setRelated(name, relation.multiple ? this._createRelatedCollection(name, models) : models);
 				return this._related[name];
@@ -535,7 +547,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
                     this._setRelated(name, this._createRelatedCollection(name, models));
                 } else {
                     var model = value;
-                    if (!(model instanceof Jii.base.Model)) {
+                    if (!(model instanceof Model)) {
                         var _class = relation.modelClass;
 
                         /** @typedef {Jii.sql.ActiveRecord} model */
@@ -592,7 +604,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
         // Relation support
         var relationFormat = this._detectKeyFormatRelation(name, this.__static.EVENT_CHANGE_NAME);
         if (relationFormat) {
-            var relationEvent = relationFormat.multiple ? Jii.base.Collection.EVENT_CHANGE : this.__static.EVENT_CHANGE;
+            var relationEvent = relationFormat.multiple ? Collection.EVENT_CHANGE : this.__static.EVENT_CHANGE;
 
             this._relatedEvents[relationFormat.name] = this._relatedEvents[relationFormat.name] || [];
             this._relatedEvents[relationFormat.name].push([relationEvent, handler, data, isAppend]);
@@ -649,7 +661,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
         // Relation support
         var relationFormat = this._detectKeyFormatRelation(name, this.__static.EVENT_CHANGE_NAME);
         if (relationFormat) {
-            var relationEvent = relationFormat.multiple ? Jii.base.Collection.EVENT_CHANGE : this.__static.EVENT_CHANGE;
+            var relationEvent = relationFormat.multiple ? Collection.EVENT_CHANGE : this.__static.EVENT_CHANGE;
             if (this._relatedEvents[relationFormat.name]) {
                 this._relatedEvents[relationFormat.name] = _filter(this._relatedEvents[relationFormat.name], arr => {
                     return arr[0] !== relationEvent || arr[1] !== handler;
@@ -686,7 +698,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
         var multiple = null;
         this._fetchRelationFromRoot(name);
         if (this._related[name]) {
-            multiple = this._related[name] instanceof Jii.base.Collection;
+            multiple = this._related[name] instanceof Collection;
         }
         if (multiple === null) {
             multiple = this.getRelation(name).multiple;
@@ -715,7 +727,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
         _each(this._relatedEvents[name] || {}, args => {
             this._related[name].on.apply(this._related[name], args);
         });
-        this.trigger(this.__static.EVENT_CHANGE_NAME + name, new Jii.model.ChangeAttributeEvent({
+        this.trigger(this.__static.EVENT_CHANGE_NAME + name, new ChangeAttributeEvent({
             attribute: name,
             oldValue: null,
             newValue: value,
@@ -739,7 +751,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
         _each(this._relatedEvents[name] || {}, args => {
             oldValue.off(args[0], args[1]);
         });
-        this.trigger(this.__static.EVENT_CHANGE_NAME + name, new Jii.model.ChangeAttributeEvent({
+        this.trigger(this.__static.EVENT_CHANGE_NAME + name, new ChangeAttributeEvent({
             attribute: name,
             oldValue: oldValue,
             newValue: null,
@@ -807,7 +819,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 			this._oldAttributes[name] = value;
 		}
 
-		throw new Jii.exceptions.InvalidParamException(this.className() + ' has no attribute named "' + name + '".');
+		throw new InvalidParamException(this.className() + ' has no attribute named "' + name + '".');
 	},
 
 	/**
@@ -1197,7 +1209,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 	 * If false, the insertion or updating will be cancelled.
 	 */
 	beforeSave(insert) {
-		var event = new Jii.base.ModelEvent();
+		var event = new ModelEvent();
 		this.trigger(insert ? this.__static.EVENT_BEFORE_INSERT : this.__static.EVENT_BEFORE_UPDATE, event);
 
 		return Promise.resolve(event.isValid);
@@ -1220,7 +1232,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 	afterSave(insert, changedAttributes) {
 		var eventName = insert ? this.__static.EVENT_AFTER_INSERT : this.__static.EVENT_AFTER_UPDATE;
 
-		this.trigger(eventName, new Jii.sql.AfterSaveEvent({
+		this.trigger(eventName, new AfterSaveEvent({
 			changedAttributes: changedAttributes
 		}));
 
@@ -1247,7 +1259,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 	 * @returns {boolean} whether the record should be deleted. Defaults to true.
 	 */
 	beforeDelete() {
-		var event = new Jii.base.ModelEvent();
+		var event = new ModelEvent();
 		this.trigger(this.__static.EVENT_BEFORE_DELETE, event);
 
 		return Promise.resolve(event.isValid);
@@ -1386,7 +1398,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 		if (_isFunction(this[getter])) {
 			return this[getter]();
 		} else if (throwException) {
-			throw new Jii.exceptions.InvalidParamException(this.className() + ' has no relation named `' + name + '`.');
+			throw new InvalidParamException(this.className() + ' has no relation named `' + name + '`.');
 		}
 
 		return null;
@@ -1430,7 +1442,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 		return Promise.resolve().then(() => {
 			if (relation.getVia() !== null) {
 				if (this.isNewRecord() || model.isNewRecord()) {
-					throw new Jii.exceptions.InvalidCallException('Unable to link models: both models must NOT be newly created.');
+					throw new InvalidCallException('Unable to link models: both models must NOT be newly created.');
 				}
 
 				var viaName = null;
@@ -1481,7 +1493,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 			var p2 = this.__static.isPrimaryKey(_values(relation.link));
 			if (p1 && p2) {
 				if (this.isNewRecord() && model.isNewRecord()) {
-					throw new Jii.exceptions.InvalidCallException('Unable to link models: both models are newly created.');
+					throw new InvalidCallException('Unable to link models: both models are newly created.');
 				} else if (this.isNewRecord()) {
 					var link = {};
 					for (var fk in relation.link) {
@@ -1504,7 +1516,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 			} else if (p2) {
 				return this._bindModels(relation.link, model, this);
 			} else {
-				throw new Jii.exceptions.InvalidCallException('Unable to link models: the link does not involve any primary key.');
+				throw new InvalidCallException('Unable to link models: the link does not involve any primary key.');
 			}
 		}).then(() => {
 			// update lazily loaded related objects
@@ -1617,7 +1629,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 				return isDelete ? this.delete() : this.save(false);
 			}
 
-			throw new Jii.exceptions.InvalidCallException('Unable to unlink models: the link does not involve any primary key.');
+			throw new InvalidCallException('Unable to unlink models: the link does not involve any primary key.');
 		}).then(() => {
 				if (!relation.multiple) {
                     this._removeRelated(name);
@@ -1733,7 +1745,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 		_each(link, (pk, fk) => {
 			var value = primaryModel.get(pk);
 			if (value === null) {
-				throw new Jii.exceptions.InvalidCallException('Unable to link models: the primary key of `' + primaryModel.className() + '` is null.');
+				throw new InvalidCallException('Unable to link models: the primary key of `' + primaryModel.className() + '` is null.');
 			}
 
 			if (_isArray(foreignModel.get(fk))) { // relation via array valued attribute
@@ -1769,7 +1781,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 			_each(attributeParts, relationName => {
                 this._fetchRelationFromRoot(relationName);
 
-				if (_has(this._related, relationName) && this._related[relationName] instanceof Jii.base.ActiveRecord) {
+				if (_has(this._related, relationName) && this._related[relationName] instanceof this.__static) {
 					relatedModel = this._related[relationName];
 				} else {
 					// @todo
@@ -1802,7 +1814,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
             var rootCollection = this.__static.getDb() ? this.__static.getDb().getRootCollection(modelClassName) : null;
             if (rootCollection) {
                 // @todo Implement EVENT_ALL
-                //rootCollection.off(Jii.base.Event.EVENT_ALL, this);
+                //rootCollection.off(Event.EVENT_ALL, this);
 
                 _each(rootCollection._events, function(handlers, name) {
                     rootCollection.off(name, {
@@ -1836,7 +1848,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
             collection = rootCollection.createChild();
             collection.setFilter(relation);
         } else {
-            collection = new Jii.base.Collection([], {modelClass: modelClassName});
+            collection = new Collection([], {modelClass: modelClassName});
         }
 
         collection.setModels(items);
@@ -1875,10 +1887,10 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
         if (affectedAttributes.length > 0) {
             rootCollection.on(
                 [
-                    Jii.base.Collection.EVENT_CHANGE
+                    Collection.EVENT_CHANGE
                 ].concat(
                     _map(affectedAttributes, attribute => {
-                        return Jii.base.Collection.EVENT_CHANGE_NAME + attribute;
+                        return Collection.EVENT_CHANGE_NAME + attribute;
                     })
                 ),
                 {
@@ -1903,7 +1915,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
         var name = event.data.relationName;
 
         if (!name) {
-            throw new Jii.exceptions.InvalidParamException('Not found relationName in event handler.');
+            throw new InvalidParamException('Not found relationName in event handler.');
         }
 
         // Skip left events

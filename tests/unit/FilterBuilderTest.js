@@ -1,6 +1,9 @@
 require('./bootstrap');
 
 var Jii = require('jii');
+var FilterBuilder = require('jii-ar-sql/FilterBuilder');
+var Query = require('jii-ar-sql/Query');
+var Collection = require('../../base/Collection');
 
 require('./models/Article');
 require('./models/User');
@@ -18,9 +21,9 @@ var self = Jii.defineClass('tests.unit.FilterBuilderTest', {
 	__extends: 'Jii.base.UnitTest',
 
     conditionHashTest: function (test) {
-        var filterBuilder = new Jii.sql.FilterBuilder();
+        var filterBuilder = new FilterBuilder();
 
-        var query = new Jii.sql.Query();
+        var query = new Query();
         query.where({foo: 5});
 
         test.deepEqual(filterBuilder.attributes(query), ['foo']);
@@ -33,9 +36,9 @@ var self = Jii.defineClass('tests.unit.FilterBuilderTest', {
     },
 
     conditionAndTest: function (test) {
-        var filterBuilder = new Jii.sql.FilterBuilder();
+        var filterBuilder = new FilterBuilder();
 
-        var query = new Jii.sql.Query();
+        var query = new Query();
         query.where({foo: 5});
         query.andWhere({bar: 2});
         query.orWhere({zaa: 10});
@@ -51,9 +54,9 @@ var self = Jii.defineClass('tests.unit.FilterBuilderTest', {
     },
 
     conditionNotTest: function (test) {
-        var filterBuilder = new Jii.sql.FilterBuilder();
+        var filterBuilder = new FilterBuilder();
 
-        var query = new Jii.sql.Query();
+        var query = new Query();
         query.where({foo: 5});
         query.andWhere(['not', {bar: 2}]);
 
@@ -67,9 +70,9 @@ var self = Jii.defineClass('tests.unit.FilterBuilderTest', {
     },
 
     conditionBetweenTest: function (test) {
-        var filterBuilder = new Jii.sql.FilterBuilder();
+        var filterBuilder = new FilterBuilder();
 
-        var query = new Jii.sql.Query();
+        var query = new Query();
         query.andWhere(['between', 'foo', 10, 20]);
         query.andWhere(['not between', 'foo', 15, 25]);
 
@@ -85,9 +88,9 @@ var self = Jii.defineClass('tests.unit.FilterBuilderTest', {
     },
 
     conditionInTest: function (test) {
-        var filterBuilder = new Jii.sql.FilterBuilder();
+        var filterBuilder = new FilterBuilder();
 
-        var query = new Jii.sql.Query();
+        var query = new Query();
         query.where(['in', 'foo', [1, 2, 3, 4]]);
 
         test.deepEqual(filterBuilder.attributes(query), ['foo']);
@@ -99,7 +102,7 @@ var self = Jii.defineClass('tests.unit.FilterBuilderTest', {
     },
 
     relationTest: function(test) {
-        var filterBuilder = new Jii.sql.FilterBuilder();
+        var filterBuilder = new FilterBuilder();
 
         var article = new tests.unit.models.Article({id: 10, userId: 50});
 
@@ -118,7 +121,7 @@ var self = Jii.defineClass('tests.unit.FilterBuilderTest', {
     },
 
     relationTimeTest: function(test) {
-        var filterBuilder = new Jii.sql.FilterBuilder();
+        var filterBuilder = new FilterBuilder();
         tests.unit.models.Article.getDb = function() {
             return {
                 getSchema: function() {
@@ -131,7 +134,7 @@ var self = Jii.defineClass('tests.unit.FilterBuilderTest', {
             }
         }
 
-        var collection = new Jii.base.Collection([], {modelClass: tests.unit.models.Article});
+        var collection = new Collection([], {modelClass: tests.unit.models.Article});
         for (var i = 0; i < 1000; i++) {
             collection.add({
                 id: i,
@@ -140,7 +143,7 @@ var self = Jii.defineClass('tests.unit.FilterBuilderTest', {
             });
         }
 
-        var query = (new Jii.sql.Query())
+        var query = (new Query())
             .where(['in', 'id', 50]);
         collection.setFilter(query);
 

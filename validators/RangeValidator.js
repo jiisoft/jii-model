@@ -6,6 +6,7 @@
 'use strict';
 
 var Jii = require('jii');
+var ApplicationException = require('jii/exceptions/ApplicationException');
 var _isArray = require('lodash/isArray');
 var _each = require('lodash/each');
 var Validator = require('./Validator');
@@ -28,7 +29,7 @@ module.exports = Jii.defineClass('Jii.validators.RangeValidator', /** @lends Jii
         this.__super();
 
         if (!_isArray(this.range)) {
-            throw new Jii.exceptions.ApplicationException('The `range` property must be set.');
+            throw new ApplicationException('The `range` property must be set.');
         }
 
         if (this.message === null) {

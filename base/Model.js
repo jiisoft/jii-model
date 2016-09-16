@@ -6,6 +6,14 @@
 'use strict';
 
 var Jii = require('jii');
+var Validator = require('../validators/Validator');
+var RequiredValidator = require('../validators/RequiredValidator');
+var ChangeAttributeEvent = require('../model/ChangeAttributeEvent');
+var ChangeEvent = require('../model/ChangeEvent');
+var InvalidParamException = require('jii/exceptions/InvalidParamException');
+var UnknownPropertyException = require('jii/exceptions/UnknownPropertyException');
+var ApplicationException = require('jii/exceptions/ApplicationException');
+var ValidateEvent = require('../model/ValidateEvent');
 var _isObject = require('lodash/isObject');
 var _isEmpty = require('lodash/isEmpty');
 var _isEqual = require('lodash/isEqual');
@@ -136,7 +144,7 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
             // Trigger change attribute events
             if (!_isEmpty(this._editedChanges)) {
                 _each(this._editedChanges, (values, name) => {
-                    this.trigger(this.__static.EVENT_CHANGE_NAME + name, new Jii.model.ChangeAttributeEvent({
+                    this.trigger(this.__static.EVENT_CHANGE_NAME + name, new ChangeAttributeEvent({
                         sender: this,
                         attribute: name,
                         oldValue: values[0],
@@ -146,7 +154,7 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
                 });
 
                 // Trigger change event
-                this.trigger(this.__static.EVENT_CHANGE, new Jii.model.ChangeEvent({
+                this.trigger(this.__static.EVENT_CHANGE, new ChangeEvent({
                     sender: this,
                     changedAttributes: this._editedChanges
                 }));
@@ -187,7 +195,7 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
         try {
             return this.__super(name);
         } catch (e) {
-            if (!(e instanceof Jii.exceptions.UnknownPropertyException)) {
+            if (!(e instanceof UnknownPropertyException)) {
                 throw e;
             }
             return null;
@@ -220,11 +228,12 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
         if (subMatches !== null) {
             var subModel = this.get(subMatches[1]);
 
-            // Check sub-model is Jii.base.Model
-            if (subModel instanceof Jii.base.Collection) {
-                throw new Jii.exceptions.InvalidParamException('Try set property of array models: `' + name + '`');
-            } else if (!(subModel instanceof Jii.base.Model)) {
-                throw new Jii.exceptions.UnknownPropertyException('Setting property of null sub-model `' + name + '`');
+            // Check sub-model is Model
+            var Collection = require('./Collection');
+            if (subModel instanceof Collection) {
+                throw new InvalidParamException('Try set property of array models: `' + name + '`');
+            } else if (!(subModel instanceof module.exports)) {
+                throw new UnknownPropertyException('Setting property of null sub-model `' + name + '`');
             }
 
             subModel.beginEdit();
@@ -274,7 +283,8 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
         }
 
         var collection = this.get(arrMatches[1]);
-        if (collection instanceof Jii.base.Collection) {
+        var Collection = require('./Collection');
+        if (collection instanceof Collection) {
             var index = parseInt(arrMatches[2]);
             var arrSubModel = collection.at(index);
             if (arrSubModel) {
@@ -285,10 +295,10 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
                     index: index
                 };
             } else if (!skipThrow) {
-                throw new Jii.exceptions.InvalidParamException('Model with index `' + index + '` in collection `' + arrMatches[1] + '` is not found.');
+                throw new InvalidParamException('Model with index `' + index + '` in collection `' + arrMatches[1] + '` is not found.');
             }
         } else if (!skipThrow) {
-            throw new Jii.exceptions.InvalidParamException('Relation `' + arrMatches[1] + '` is not collection.');
+            throw new InvalidParamException('Relation `' + arrMatches[1] + '` is not collection.');
         }
 
         return null;
@@ -346,7 +356,7 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
         if (this.hasAttribute(name)) {
             this.set(name, value);
         } else {
-            throw new Jii.exceptions.InvalidParamException(this.className() + ' has no attribute named "' + name + '".');
+            throw new InvalidParamException(this.className() + ' has no attribute named "' + name + '".');
         }
     },
 
@@ -472,9 +482,10 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
         var obj = {};
         _each(names, (child, name) => {
             var value = model.get(name);
-            if (value instanceof Jii.base.Model) {
+            var Collection = require('./Collection');
+            if (value instanceof module.exports) {
                 obj[name] = this._buildTree(child, value);
-            } else if (value instanceof Jii.base.Collection) {
+            } else if (value instanceof Collection) {
                 obj[name] = _map(value.getModels(), item => this._buildTree(child, item));
             } else {
                 obj[name] = value;
@@ -646,7 +657,7 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
     createValidators() {
         var validators = [];
         _each(this.rules(), rule => {
-            if (rule instanceof Jii.validators.Validator) {
+            if (rule instanceof Validator) {
                 validators.push(rule);
             } else if (_isArray(rule) && rule.length >= 2) {
                 var attributes = _isString(rule[0]) ? [rule[0]] : rule[0];
@@ -656,10 +667,10 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
                     params.on = _isString(params.on) ? [params.on] : params.on;
                 }
 
-                var validator = Jii.validators.Validator.create(rule[1], this, attributes, params);
+                var validator = Validator.create(rule[1], this, attributes, params);
                 validators.push(validator);
             } else {
-                throw new Jii.exceptions.ApplicationException('Invalid validation rule: a rule must specify both attribute names and validator type.');
+                throw new ApplicationException('Invalid validation rule: a rule must specify both attribute names and validator type.');
             }
         });
         return validators;
@@ -716,7 +727,7 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
         var scenarios = this.scenarios();
         var scenario = this.getScenario();
         if (!_has(scenarios, scenario)) {
-            throw new Jii.exceptions.ApplicationException('Unknown scenario `' + scenario + '`.');
+            throw new ApplicationException('Unknown scenario `' + scenario + '`.');
         }
 
         if (isClearErrors) {
@@ -752,7 +763,7 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
 
         this._errors[attribute].push(error);
 
-        this.trigger(this.__static.EVENT_CHANGE_ERRORS, new Jii.model.ValidateEvent({
+        this.trigger(this.__static.EVENT_CHANGE_ERRORS, new ValidateEvent({
             errors: this._errors
         }));
     },
@@ -760,7 +771,7 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
     setErrors(errors) {
         this._errors = errors;
 
-        this.trigger(this.__static.EVENT_CHANGE_ERRORS, new Jii.model.ValidateEvent({
+        this.trigger(this.__static.EVENT_CHANGE_ERRORS, new ValidateEvent({
             errors: this._errors
         }));
     },
@@ -795,18 +806,18 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
             delete this._errors[attribute];
         }
 
-        this.trigger(this.__static.EVENT_CHANGE_ERRORS, new Jii.model.ValidateEvent({
+        this.trigger(this.__static.EVENT_CHANGE_ERRORS, new ValidateEvent({
             errors: this._errors
         }));
     },
 
     beforeValidate() {
-        this.trigger(this.__static.EVENT_BEFORE_VALIDATE, new Jii.model.ValidateEvent());
+        this.trigger(this.__static.EVENT_BEFORE_VALIDATE, new ValidateEvent());
         return true;
     },
 
     afterValidate() {
-        this.trigger(this.__static.EVENT_AFTER_VALIDATE, new Jii.model.ValidateEvent({
+        this.trigger(this.__static.EVENT_AFTER_VALIDATE, new ValidateEvent({
             errors: this._errors
         }));
     },
@@ -828,7 +839,7 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
     isAttributeRequired(attribute) {
         var bool = false;
         _each(this.getActiveValidators(attribute), validator => {
-            if (validator instanceof Jii.validators.RequiredValidator && validator.when === null) {
+            if (validator instanceof RequiredValidator && validator.when === null) {
                 bool = true;
             }
         });

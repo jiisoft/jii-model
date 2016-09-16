@@ -6,6 +6,7 @@
 'use strict';
 
 var Jii = require('jii');
+var ApplicationException = require('jii/exceptions/ApplicationException');
 var _isRegExp = require('lodash/isRegExp');
 var Validator = require('./Validator');
 
@@ -25,7 +26,7 @@ module.exports = Jii.defineClass('Jii.validators.RegularExpressionValidator', /*
         this.__super();
 
         if (!_isRegExp(this.pattern)) {
-            throw new Jii.exceptions.ApplicationException('The `pattern` property must be set.');
+            throw new ApplicationException('The `pattern` property must be set.');
         }
 
         if (this.message === null) {

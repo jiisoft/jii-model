@@ -6,6 +6,8 @@
 'use strict';
 
 var Jii = require('jii');
+var InvalidConfigException = require('jii/exceptions/InvalidConfigException');
+var ModelAttributeSchema = require('../base/ModelAttributeSchema');
 var _isString = require('lodash/isString');
 var _isNumber = require('lodash/isNumber');
 var _isObject = require('lodash/isObject');
@@ -32,7 +34,7 @@ module.exports = Jii.defineClass('Jii.base.ModelSchema', /** @lends Jii.base.Mod
          */
         createFromObject(obj) {
             _each(obj.columns, (column, name) => {
-                if (!(column instanceof Jii.base.ModelAttributeSchema)) {
+                if (!(column instanceof ModelAttributeSchema)) {
                     if (_isString(column)) {
                         if (_isNumber(name)) {
                             var parts = column.split(':');
@@ -49,16 +51,16 @@ module.exports = Jii.defineClass('Jii.base.ModelSchema', /** @lends Jii.base.Mod
                     }
 
                     if (!_isObject(column)) {
-                        throw new Jii.exceptions.InvalidConfigException('Invalid column format: ' + column);
+                        throw new InvalidConfigException('Invalid column format: ' + column);
                     }
                     if (!_isString(name)) {
                         column.name = name;
                     }
-                    obj.columns[name] = new Jii.base.ModelAttributeSchema(column);
+                    obj.columns[name] = new ModelAttributeSchema(column);
                 }
             });
 
-            return new Jii.base.ModelSchema(obj);
+            return new this.__static(obj);
         }
 
     },

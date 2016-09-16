@@ -5,6 +5,12 @@ require('./models/User');
 var _each = require('lodash/each');
 var _extend = require('lodash/extend');
 var _identity = require('lodash/identity');
+var Collection = require('jii-model/base/Collection');
+var InvalidParamException = require('jii/exceptions/InvalidParamException');
+var ChangeEvent = require('jii-model/model/ChangeEvent');
+var CollectionEvent = require('jii-model/model/CollectionEvent');
+var Query = require('jii-ar-sql/Query');
+var FilterBuilder = require('jii-ar-sql/FilterBuilder');
 
 global.tests = Jii.namespace('tests');
 
@@ -17,14 +23,14 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
 	__extends: 'Jii.base.UnitTest',
 
     arrayInstanceOfTest: function (test) {
-        var collection = new Jii.base.Collection([], {modelClass: false});
+        var collection = new Collection([], {modelClass: false});
         collection.push(222);
         collection.push(3636);
 
         test.strictEqual(collection[1], 3636);
         test.strictEqual(collection.length, 2);
         test.strictEqual(collection.className(), 'Jii.base.Collection');
-        test.strictEqual(collection instanceof Jii.base.Collection, true);
+        test.strictEqual(collection instanceof Collection, true);
 
         test.done();
     },
@@ -216,7 +222,7 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
             name: 'Fred'
         });
 
-        var coll = new Jii.base.Collection();
+        var coll = new Collection();
 
         coll.add(user1);
         test.strictEqual(coll.at(0).get('name'), 'John');
@@ -274,7 +280,7 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
         var coll;
 
         // Add - always add
-        coll = new Jii.base.Collection([], {modelClass: 'tests.unit.models.User'});
+        coll = new Collection([], {modelClass: 'tests.unit.models.User'});
         coll.add({ id: 518, name: 'John' });
         test.strictEqual(coll.length, 1);
         coll.add({ id: 519, name: 'Fred' });
@@ -297,7 +303,7 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
         test.strictEqual(coll.length, 2);
 
         // Set - overwrite attributes
-        coll = new Jii.base.Collection([], {modelClass: tests.unit.models.User});
+        coll = new Collection([], {modelClass: tests.unit.models.User});
         coll.set({ id: 519, name: 'John' });
         test.strictEqual(coll.length, 1);
         test.strictEqual(coll.at(0).get('name'), 'John');
@@ -306,13 +312,13 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
         test.strictEqual(coll.at(0).get('name'), 'Fred');
 
         // Set model key by index
-        coll = new Jii.base.Collection([{id: 288, name: 'Ivan'}], {modelClass: tests.unit.models.User});
+        coll = new Collection([{id: 288, name: 'Ivan'}], {modelClass: tests.unit.models.User});
         coll.set('[0].name', 'Bond');
         test.strictEqual(coll.at(0).get('name'), 'Bond');
         test.strictEqual(coll.get('[0]name'), 'Bond');
         test.throws(function() {
             coll.set('[1].name', 'Bond');
-        }, Jii.exceptions.InvalidParamException);
+        }, InvalidParamException);
 
         test.done();
     },
@@ -334,7 +340,7 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
             });
         };
 
-        coll = new Jii.base.Collection([], {modelClass: 'tests.unit.models.User'});
+        coll = new Collection([], {modelClass: 'tests.unit.models.User'});
 
         // Sub-collection, add
         events = [];
@@ -387,9 +393,9 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
          * @param {Jii.model.CollectionEvent|Jii.model.ChangeEvent} event
          */
         var eventsFn = function(event) {
-            if (event instanceof Jii.model.ChangeEvent) {
+            if (event instanceof ChangeEvent) {
                 events.push.apply(events, Object.keys(event.changedAttributes));
-            } else if (event instanceof Jii.model.CollectionEvent) {
+            } else if (event instanceof CollectionEvent) {
                 _each(event.added, function(model) {
                     events.push('added-' + model.getPrimaryKey());
                 });
@@ -400,7 +406,7 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
         };
 
         // change
-        coll = new Jii.base.Collection([], {modelClass: 'tests.unit.models.User'});
+        coll = new Collection([], {modelClass: 'tests.unit.models.User'});
         events = [];
         coll.on('change', eventsFn);
         coll.add({id: 288, name: 'Ivan'});
@@ -409,7 +415,7 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
         test.deepEqual(events, ['added-288', 'added-289', 'removed-289']);
 
         // change:key
-        coll = new Jii.base.Collection([], {modelClass: 'tests.unit.models.User'});
+        coll = new Collection([], {modelClass: 'tests.unit.models.User'});
         events = [];
         coll.on('change:name', eventsFn);
         coll.add({id: 288, name: 'Ivan'});
@@ -417,7 +423,7 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
         test.deepEqual(events, ['name']);
 
         // change:foo.bar
-        coll = new Jii.base.Collection([], {modelClass: 'tests.unit.models.Article'});
+        coll = new Collection([], {modelClass: 'tests.unit.models.Article'});
         events = [];
         coll.on('change:user.name', eventsFn);
         coll.add({id: 55, user: {id: 10, name: 'Bond'}});
@@ -444,7 +450,7 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
             });
         };
 
-        coll = new Jii.base.Collection([], {modelClass: 'tests.unit.models.User'});
+        coll = new Collection([], {modelClass: 'tests.unit.models.User'});
         coll.add({id: 250, name: 'Ivan'});
         coll.add({id: 300, name: 'Piter'});
         coll.on('change', eventsFn);
@@ -473,7 +479,7 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
 
 
     cloneTest: function (test) {
-        var root = new Jii.base.Collection([], {modelClass: 'tests.unit.models.Article'});
+        var root = new Collection([], {modelClass: 'tests.unit.models.Article'});
         root.add({id: 55, title: 'Test article'});
 
         var child = root.createChild();
@@ -505,7 +511,7 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
     },
 
     filterTest: function(test) {
-        var root = new Jii.base.Collection([], {modelClass: 'tests.unit.models.Article'});
+        var root = new Collection([], {modelClass: 'tests.unit.models.Article'});
         root.add({id: 55, title: 'aaa bbb'});
         root.add({id: 66, title: 'bbb ccc'});
         root.add({id: 77, title: 'ccc'});
@@ -536,7 +542,7 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
     },
 
     subFilterTest: function(test) {
-        var root = new Jii.base.Collection([], {modelClass: 'tests.unit.models.Article'});
+        var root = new Collection([], {modelClass: 'tests.unit.models.Article'});
         root.add({id: 55, title: 'aaa bbb'});
         root.add({id: 66, title: 'bbb ccc'});
         root.add({id: 77, title: 'ccc ddd'});
@@ -576,7 +582,7 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
     },
 
     proxyTest: function(test) {
-        var coll = new Jii.base.Collection([], {modelClass: 'tests.unit.models.Article'});
+        var coll = new Collection([], {modelClass: 'tests.unit.models.Article'});
         coll.add({id: 55, title: 'aaa bbb'});
 
         var modelAdapter = {
@@ -632,9 +638,9 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
          * @param {Jii.model.CollectionEvent|Jii.model.ChangeEvent} event
          */
         var eventsFn = function(event) {
-            if (event instanceof Jii.model.ChangeEvent) {
+            if (event instanceof ChangeEvent) {
                 events.push.apply(events, Object.keys(event.changedAttributes));
-            } else if (event instanceof Jii.model.CollectionEvent) {
+            } else if (event instanceof CollectionEvent) {
                 _each(event.added, function(model) {
                     events.push('added-' + model.getPrimaryKey());
                 });
@@ -650,7 +656,7 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
         });
 
         // change
-        coll = new Jii.base.Collection([], {modelClass: 'tests.unit.models.User'});
+        coll = new Collection([], {modelClass: 'tests.unit.models.User'});
         coll.on('change change:name', eventsFn);
 
         events = [];
@@ -678,26 +684,26 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
                 getSchema: function() {
                     return {
                         getFilterBuilder: function() {
-                            return new Jii.sql.FilterBuilder();
+                            return new FilterBuilder();
                         }
                     }
                 }
             }
         }
 
-        var coll = new Jii.base.Collection([], {modelClass: 'tests.unit.models.Article'});
+        var coll = new Collection([], {modelClass: 'tests.unit.models.Article'});
         var article = new tests.unit.models.Article({id: 44, title: 'q2', text: 'ss'});
         coll.add({id: 55, title: 'q1', text: 'ww'});
         coll.add(article);
 
         var child = coll.createChild();
-        child.setFilter((new Jii.sql.Query()).where({title: 'q3'}));
+        child.setFilter((new Query()).where({title: 'q3'}));
         test.strictEqual(child.length, 0);
 
         coll.add({id: 66, title: 'q3', text: 'ww'});
         test.strictEqual(child.length, 1);
 
-        child.setFilter((new Jii.sql.Query()).where({text: 'ww'}));
+        child.setFilter((new Query()).where({text: 'ww'}));
         test.strictEqual(child.length, 2);
 
         child.on('change:text', function(){console.log(9999)})
@@ -718,7 +724,7 @@ var self = Jii.defineClass('tests.unit.CollectionTest', {
      */
     _coll: function(arr) {
         arr = arr || [1, 2, 3];
-        return new Jii.base.Collection(arr, {
+        return new Collection(arr, {
             modelClass: false
         });
     }

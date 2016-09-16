@@ -6,6 +6,7 @@
 'use strict';
 
 var Jii = require('jii');
+var ApplicationException = require('jii/exceptions/ApplicationException');
 var _isArray = require('lodash/isArray');
 var Validator = require('./Validator');
 
@@ -59,7 +60,7 @@ module.exports = Jii.defineClass('Jii.validators.CompareValidator', /** @lends J
 
     validateValue(value) {
         if (!this.compareValue) {
-            throw new Jii.exceptions.ApplicationException('CompareValidator::compareValue must be set.');
+            throw new ApplicationException('CompareValidator::compareValue must be set.');
         }
 
         switch (this.operator) {
