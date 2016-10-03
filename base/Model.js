@@ -531,7 +531,7 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
      */
     getAttributeLabel(name) {
         var attributes = this.attributeLabels();
-        return _has(attributes, name) ? attributes[name] : name;
+        return _has(attributes, name) ? attributes[name] : this.generateAttributeLabel(name);
     },
 
     /**
