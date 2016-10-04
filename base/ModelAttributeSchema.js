@@ -6,7 +6,7 @@
 'use strict';
 
 var Jii = require('jii');
-var Expression = require('jii-ar-sql/Expression');
+var Expression = require('../model/Expression');
 var _isBoolean = require('lodash/isBoolean');
 var _isEmpty = require('lodash/isEmpty');
 var Object = require('jii/base/Object');

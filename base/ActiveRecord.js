@@ -13,7 +13,7 @@ var NotSupportedException = require('jii/exceptions/NotSupportedException');
 var ChangeAttributeEvent = require('../model/ChangeAttributeEvent');
 var InvalidParamException = require('jii/exceptions/InvalidParamException');
 var ModelEvent = require('jii/base/ModelEvent');
-var AfterSaveEvent = require('jii-ar-sql/AfterSaveEvent');
+var AfterSaveEvent = require('../model/AfterSaveEvent');
 var InvalidCallException = require('jii/exceptions/InvalidCallException');
 var Collection = require('../base/Collection');
 var _upperFirst = require('lodash/upperFirst');
@@ -69,7 +69,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
         /**
          * Event an event that is triggered after a record is inserted.
          * @event Jii.base.ActiveRecord#afterInsert
-         * @property {Jii.sql.AfterSaveEvent} event
+         * @property {Jii.model.AfterSaveEvent} event
          */
 		EVENT_AFTER_INSERT: 'afterInsert',
 
@@ -82,7 +82,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 
         /**
          * @event Jii.base.ActiveRecord#afterUpdate
-         * @property {Jii.sql.AfterSaveEvent} event an event that is triggered after a record is updated.
+         * @property {Jii.model.AfterSaveEvent} event an event that is triggered after a record is updated.
          */
 		EVENT_AFTER_UPDATE: 'afterUpdate',
 
@@ -141,15 +141,6 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 		findAll(condition) {
 			return this._findByCondition(condition, false);
 		},
-
-        /**
-         * @inheritdoc
-         */
-        find() {
-            // @todo
-			var ActiveQuery = require('jii-ar-sql/ActiveQuery');
-            return new ActiveQuery(this);
-        },
 
         /**
          * Returns the database connection used by this AR class.
@@ -467,8 +458,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 		}
 
 		var relation = this.getRelation(name);
-		var ActiveQuery = require('jii-ar-sql/ActiveQuery');
-		if (relation instanceof ActiveQuery) {
+		if (_isFunction(relation.findFor)) {
 			return relation.findFor(name, this).then(models => {
                 this._setRelated(name, relation.multiple ? this._createRelatedCollection(name, models) : models);
 				return this._related[name];

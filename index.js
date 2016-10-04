@@ -10,6 +10,7 @@ if (!process.env.JII_NO_NAMESPACE) {
     require('./base/ModelAdapterInterface.js');
     require('./base/ModelAttributeSchema.js');
     require('./base/ModelSchema.js');
+    require('./model/AfterSaveEvent.js');
     require('./model/ArrayDataProvider.js');
     require('./model/ChangeAttributeEvent.js');
     require('./model/ChangeEvent.js');

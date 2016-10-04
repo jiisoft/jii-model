@@ -7,7 +7,6 @@
 
 var Jii = require('jii');
 var InvalidParamException = require('jii/exceptions/InvalidParamException');
-var Query = require('jii-ar-sql/Query');
 var CollectionEvent = require('../model/CollectionEvent');
 var InvalidConfigException = require('jii/exceptions/InvalidConfigException');
 var NotSupportedException = require('jii/exceptions/NotSupportedException');
@@ -277,41 +276,35 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
             }
         }
 
-        if (Jii.sql && Jii.sql.Query) {
-            // Where object
-            /*if (_isArray(value) || _isObject(value)) {
-                value = (new Query()).where(value);
-            }*/
-
-            // Query instance
-            if (value instanceof Query && (!this._filter || this._filter.query !== value)) {
-                if (db) {
-                    // Unsubscribe previous
-                    if (this._filter && this._filter.query && this._filter.attributes) {
-                        _each(this._filter.attributes, attribute => {
-                            parentCollection.off(this.__static.EVENT_CHANGE_NAME + attribute, {
-                                context: this,
-                                callback: this.refreshFilter
-                            });
-                        });
-                    }
-                }
-
-                this._filter = this._normalizePredicate(value);
-
-                if (db) {
-                    // Subscribe current
+        // Query instance
+        // TODO Instance of without require deps
+        if (_isObject(value) && _isFunction(value.createCommand) && _isFunction(value.prepare) && (!this._filter || this._filter.query !== value)) {
+            if (db) {
+                // Unsubscribe previous
+                if (this._filter && this._filter.query && this._filter.attributes) {
                     _each(this._filter.attributes, attribute => {
-                        parentCollection.on(this.__static.EVENT_CHANGE_NAME + attribute, {
+                        parentCollection.off(this.__static.EVENT_CHANGE_NAME + attribute, {
                             context: this,
                             callback: this.refreshFilter
                         });
                     });
                 }
-
-
-                this.refreshFilter();
             }
+
+            this._filter = this._normalizePredicate(value);
+
+            if (db) {
+                // Subscribe current
+                _each(this._filter.attributes, attribute => {
+                    parentCollection.on(this.__static.EVENT_CHANGE_NAME + attribute, {
+                        context: this,
+                        callback: this.refreshFilter
+                    });
+                });
+            }
+
+
+            this.refreshFilter();
         }
     },
 
@@ -1303,7 +1296,8 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
     },
 
     _normalizePredicate(predicate) {
-        if (Jii.sql && Jii.sql.Query && predicate instanceof Jii.sql.Query && this.modelClass) {
+        // TODO Instance of without require deps
+        if (_isObject(predicate) && _isFunction(predicate.createCommand) && _isFunction(predicate.prepare) && this.modelClass) {
             var db = Jii.namespace(this.modelClass).getDb();
             if (db) {
                 var filterBuilder = db.getSchema().getFilterBuilder();
