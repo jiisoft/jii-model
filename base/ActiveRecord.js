@@ -1169,7 +1169,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 	 * @see isNewRecord()
 	 */
 	setIsNewRecord(value) {
-		this._oldAttributes = value ? null : this._attributes;
+		this._oldAttributes = value ? null : _clone(this._attributes);
 	},
 
 	/**
