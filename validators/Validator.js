@@ -8,11 +8,9 @@
 var Jii = require('jii');
 var ApplicationException = require('jii/exceptions/ApplicationException');
 var _isFunction = require('lodash/isFunction');
-var _isObject = require('lodash/isObject');
 var _isArray = require('lodash/isArray');
 var _indexOf = require('lodash/indexOf');
 var _isString = require('lodash/isString');
-var _has = require('lodash/has');
 var _extend = require('lodash/extend');
 var _intersection = require('lodash/intersection');
 var _map = require('lodash/map');
@@ -29,48 +27,73 @@ module.exports = Jii.defineClass('Jii.validators.Validator', /** @lends Jii.vali
 
 	__static: /** @lends Jii.validators.Validator */{
 
-		defaultValidators: {
+        getDefaultValidator(type) {
+		    switch (type) {
+                case 'boolean':
+                    return require('./BooleanValidator');
 
-			'boolean': 'Jii.validators.BooleanValidator',
-			'compare': 'Jii.validators.CompareValidator',
-			'date': 'Jii.validators.DateValidator',
-			'default': 'Jii.validators.DefaultValueValidator',
-			'double': 'Jii.validators.NumberValidator',
-			'email': 'Jii.validators.EmailValidator',
-			//'exist': 'Jii.validators.ExistValidator',
-			//'file': 'Jii.validators.FileValidator',
-			'filter': 'Jii.validators.FilterValidator',
-			//'image': 'Jii.validators.ImageValidator',
-			'in': 'Jii.validators.RangeValidator',
-			'integer': {
-				'className': 'Jii.validators.NumberValidator',
-				'integerOnly': true
-			},
-			'match': 'Jii.validators.RegularExpressionValidator',
-			'number': 'Jii.validators.NumberValidator',
-			'required': 'Jii.validators.RequiredValidator',
-			'safe': 'Jii.validators.SafeValidator',
-			'string': 'Jii.validators.StringValidator',
-			//'unique': 'Jii.validators.UniqueValidator',
-			'url': 'Jii.validators.UrlValidator'
-		},
+                case 'compare':
+                    return require('./CompareValidator');
+
+                case 'date':
+                    return require('./DateValidator');
+
+                case 'default':
+                    return require('./DefaultValueValidator');
+
+                    return require('./NumberValidator');
+
+                case 'email':
+                    return require('./EmailValidator');
+
+                case 'filter':
+                    return require('./FilterValidator');
+
+                case 'in':
+                    return require('./RangeValidator');
+
+                case 'number':
+                case 'double':
+                case 'integer':
+                    return {
+                        'className': require('./NumberValidator'),
+                        'integerOnly': type === 'integer'
+                    };
+
+                case 'match':
+                    return require('./RegularExpressionValidator');
+
+                case 'required':
+                    return require('./RequiredValidator');
+
+                case 'safe':
+                    return require('./SafeValidator');
+
+                case 'string':
+                    return require('./StringValidator');
+
+                case 'url':
+                    return require('./UrlValidator');
+
+            }
+
+		    return null;
+        },
 
 		create(type, object, attributes, params) {
 			params = params || {};
 			params.attributes = attributes;
 
 			if (_isFunction(object[type])) {
-				params.className = 'Jii.validators.InlineValidator';
+				params.className = require('./InlineValidator');
 				params.method = type;
 			} else {
-				if (_has(this.defaultValidators, type)) {
-					type = this.defaultValidators[type];
-				}
+                type = this.getDefaultValidator(type) || type;
 
-				if (_isObject(type)) {
-					_extend(params, type);
+				if (_isString(type) || _isFunction(type)) {
+                    params.className = type;
 				} else {
-					params.className = type;
+                    _extend(params, type);
 				}
 			}
 

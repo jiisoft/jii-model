@@ -1,6 +1,7 @@
-require('./bootstrap');
-require('./models/FakeValidationModel');
+'use strict';
 
+var Jii = require('jii');
+var FakeValidationModel = require('../models/FakeValidationModel');
 var BooleanValidator = require('jii-model/validators/BooleanValidator');
 var CompareValidator = require('jii-model/validators/CompareValidator');
 var DateValidator = require('jii-model/validators/DateValidator');
@@ -15,6 +16,9 @@ var UrlValidator = require('jii-model/validators/UrlValidator');
 var NumberValidator = require('jii-model/validators/NumberValidator');
 var RangeValidator = require('jii-model/validators/RangeValidator');
 var RegularExpressionValidator = require('jii-model/validators/RegularExpressionValidator');
+var UnitTest = require('jii/server/base/UnitTest');
+
+require('./bootstrap');
 
 /**
  * @class tests.unit.ValidatorTest
@@ -22,10 +26,10 @@ var RegularExpressionValidator = require('jii-model/validators/RegularExpression
  */
 var self = Jii.defineClass('tests.unit.ValidatorTest', {
 
-	__extends: 'Jii.base.UnitTest',
+	__extends: UnitTest,
 
     _assertValidation: function(test, validator, values, hasErrors) {
-        var model = new tests.unit.models.FakeValidationModel();
+        var model = new FakeValidationModel();
 
         values.forEach(function(value) {
             model.set('foo', value);
@@ -60,7 +64,7 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
     },
 
     compareValidatorTest: function (test) {
-        var model = new tests.unit.models.FakeValidationModel();
+        var model = new FakeValidationModel();
         model.set('foo', 'test');
 
         // Attribute
@@ -90,7 +94,7 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
         this._assertTrue(test, validator, ['2013-03-04']);
         this._assertFalse(test, validator, ['text..']);
 
-        var model = new tests.unit.models.FakeValidationModel();
+        var model = new FakeValidationModel();
         model.set('foo', '2013-03-04');
         validator.timestampAttribute = 'bar';
         validator.validateAttribute(model, 'foo');
@@ -100,7 +104,7 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
     },
 
     defaultValueValidatorTest: function(test) {
-        var model = new tests.unit.models.FakeValidationModel();
+        var model = new FakeValidationModel();
         model.set('foo', 'test');
 
         var validator = new DefaultValueValidator();
@@ -124,7 +128,7 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
     },
 
     filterValidatorTest: function (test) {
-        var model = new tests.unit.models.FakeValidationModel();
+        var model = new FakeValidationModel();
         var validator = new FilterValidator({
             filter: function(value) {
                 return value * 2;
@@ -139,7 +143,7 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
     },
 
     inlineValidatorTest: function (test) {
-        var model = new tests.unit.models.FakeValidationModel();
+        var model = new FakeValidationModel();
         model.checkFoo = function(attribute, params) {
             test.strictEqual(params.param1, 'value1');
             this.addError(attribute, 'test error');
@@ -212,7 +216,7 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
     },
 
     requiredValidatorTest: function (test) {
-        var model = new tests.unit.models.FakeValidationModel();
+        var model = new FakeValidationModel();
         var validator = new RequiredValidator();
 
         model.set('foo', 'text..');
@@ -227,7 +231,7 @@ var self = Jii.defineClass('tests.unit.ValidatorTest', {
     },
 
     safeValidatorTest: function (test) {
-        var model = new tests.unit.models.FakeValidationModel();
+        var model = new FakeValidationModel();
         var validator = new SafeValidator();
 
         validator.validateAttribute(model, 'foo');

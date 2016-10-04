@@ -1,22 +1,18 @@
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
-
-var tests = Jii.namespace('tests');
-
-require('./ActiveRecord.js');
+var ActiveRecord = require('./ActiveRecord.js');
+var User = require('./User');
+var Link = require('./Link');
+var LinkJunction = require('./LinkJunction');
 
 /**
- * @class tests.unit.models.Article
+ * @class Article
  * @extends Jii.base.ActiveRecord
  */
-Jii.defineClass('tests.unit.models.Article', {
+module.exports = Jii.defineClass('Article', {
 
-	__extends: 'Jii.base.ActiveRecord',
+	__extends: ActiveRecord,
 
 	__static: {
 
@@ -47,19 +43,19 @@ Jii.defineClass('tests.unit.models.Article', {
 	},
 
 	getUser: function () {
-		return this.hasOne(tests.unit.models.User.className(), {id: 'userId'});
+		return this.hasOne(User, {id: 'userId'});
 	},
 
 	getLinks: function () {
-		return this.hasMany(tests.unit.models.Link.className(), {articleId: 'id'});
+		return this.hasMany(Link, {articleId: 'id'});
 	},
 
 	getLinksJunction: function () {
-		return this.hasMany(tests.unit.models.LinkJunction.className(), {articleId: 'id'});
+		return this.hasMany(LinkJunction, {articleId: 'id'});
 	},
 
     getLinksVia: function () {
-        return this.hasMany(tests.unit.models.Link.className(), {id: 'linkId'}).via('linksJunction');
+        return this.hasMany(Link, {id: 'linkId'}).via('linksJunction');
     }
 
 });

@@ -1,16 +1,13 @@
-require('./bootstrap');
+'use strict';
 
 var Jii = require('jii');
 var FilterBuilder = require('jii-ar-sql/FilterBuilder');
 var Query = require('jii-ar-sql/Query');
 var Collection = require('../../base/Collection');
+var Article = require('../models/Article');
+var UnitTest = require('jii/server/base/UnitTest');
 
-require('./models/Article');
-require('./models/User');
-require('./models/Link');
-require('./models/LinkJunction');
-
-global.tests = Jii.namespace('tests');
+require('./bootstrap');
 
 /**
  * @class tests.unit.FilterBuilderTest
@@ -18,7 +15,7 @@ global.tests = Jii.namespace('tests');
  */
 var self = Jii.defineClass('tests.unit.FilterBuilderTest', {
 
-	__extends: 'Jii.base.UnitTest',
+    __extends: UnitTest,
 
     conditionHashTest: function (test) {
         var filterBuilder = new FilterBuilder();
@@ -104,7 +101,7 @@ var self = Jii.defineClass('tests.unit.FilterBuilderTest', {
     relationTest: function(test) {
         var filterBuilder = new FilterBuilder();
 
-        var article = new tests.unit.models.Article({id: 10, userId: 50});
+        var article = new Article({id: 10, userId: 50});
 
         // hasOne
         var hasOneQuery = article.getUser();
@@ -122,7 +119,7 @@ var self = Jii.defineClass('tests.unit.FilterBuilderTest', {
 
     relationTimeTest: function(test) {
         var filterBuilder = new FilterBuilder();
-        tests.unit.models.Article.getDb = function() {
+        Article.getDb = function() {
             return {
                 getSchema: function() {
                     return {
@@ -132,9 +129,9 @@ var self = Jii.defineClass('tests.unit.FilterBuilderTest', {
                     }
                 }
             }
-        }
+        };
 
-        var collection = new Collection([], {modelClass: tests.unit.models.Article});
+        var collection = new Collection([], {modelClass: Article});
         for (var i = 0; i < 1000; i++) {
             collection.add({
                 id: i,

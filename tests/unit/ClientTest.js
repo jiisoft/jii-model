@@ -1,24 +1,24 @@
-require('./bootstrap');
-require('./models/Article');
-require('./models/User');
-require('./models/Link');
+'use strict';
 
+var Jii = require('jii');
+var Article = require('../models/Article');
 var Collection = require('jii-model/base/Collection');
 var UnknownPropertyException = require('jii/exceptions/UnknownPropertyException');
 var InvalidParamException = require('jii/exceptions/InvalidParamException');
+var UnitTest = require('jii/server/base/UnitTest');
 
-global.tests = Jii.namespace('tests');
+require('./bootstrap');
 
 /**
  * @class tests.unit.ClientTest
  * @extends Jii.base.UnitTest
  */
-var self = Jii.defineClass('tests.unit.ClientTest', {
+var ClientTest = Jii.defineClass('tests.unit.ClientTest', {
 
-	__extends: 'Jii.base.UnitTest',
+    __extends: UnitTest,
 
     relationTest: function (test) {
-        var article = new tests.unit.models.Article();
+        var article = new Article();
 
         // Object set
         article.set({
@@ -95,7 +95,7 @@ var self = Jii.defineClass('tests.unit.ClientTest', {
     },
 
     eventsTest: function(test) {
-        var article = new tests.unit.models.Article();
+        var article = new Article();
 
         // Object set
         article.set({
@@ -149,4 +149,4 @@ var self = Jii.defineClass('tests.unit.ClientTest', {
 
 });
 
-module.exports = new self().exports();
+module.exports = new ClientTest().exports();

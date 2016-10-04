@@ -1,22 +1,16 @@
 'use strict';
 
-/**
- * @namespace Jii
- * @ignore
- */
 var Jii = require('jii');
-
-var tests = Jii.namespace('tests');
-
-require('./ActiveRecord.js');
+var ActiveRecord = require('./ActiveRecord.js');
+var LinkData = require('./LinkData');
 
 /**
  * @class tests.unit.models.Link
  * @extends Jii.base.ActiveRecord
  */
-var self = Jii.defineClass('tests.unit.models.Link', {
+module.exports = Jii.defineClass('tests.unit.models.Link', {
 
-	__extends: 'Jii.base.ActiveRecord',
+	__extends: ActiveRecord,
 
 	__static: {
 
@@ -42,7 +36,7 @@ var self = Jii.defineClass('tests.unit.models.Link', {
 	},
 
     getData: function () {
-        return this.hasOne(tests.unit.models.LinkData.className(), {dataId: 'id'});
+        return this.hasOne(LinkData, {dataId: 'id'});
     }
 
 });

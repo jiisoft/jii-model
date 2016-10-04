@@ -1,7 +1,7 @@
 'use strict';
 
 // Load libs
-global.Jii = require('../../index');
+var Jii = require('jii');
 
 Jii.createWebApplication({
 	application: {

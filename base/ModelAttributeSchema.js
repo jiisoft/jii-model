@@ -6,7 +6,6 @@
 'use strict';
 
 var Jii = require('jii');
-var BaseSchema = require('jii-ar-sql/server/BaseSchema');
 var Expression = require('jii-ar-sql/Expression');
 var _isBoolean = require('lodash/isBoolean');
 var _isEmpty = require('lodash/isEmpty');
@@ -55,9 +54,7 @@ module.exports = Jii.defineClass('Jii.base.ModelAttributeSchema', /** @lends Jii
 	 * @return {*} converted value
 	 */
 	typecast(value) {
-		if (value === '' && this.type !== BaseSchema.TYPE_TEXT &&
-			this.type !== BaseSchema.TYPE_STRING &&
-			this.type !== BaseSchema.TYPE_BINARY) {
+		if (value === '' && ['text', 'string', 'binary'].indexOf(this.type) === -1) { // TODO Use const values from BaseSchema
 			return null;
 		}
 

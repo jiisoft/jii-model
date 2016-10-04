@@ -1,11 +1,10 @@
-require('./bootstrap');
-require('./models/SampleModel');
-require('./models/Article');
-require('./models/User');
-require('./models/Link');
-require('./models/LinkJunction');
-require('./models/LinkData');
+'use strict';
 
+var Jii = require('jii');
+var SampleModel = require('../models/SampleModel');
+var Article = require('../models/Article');
+var User = require('../models/User');
+var Link = require('../models/Link');
 var _each = require('lodash/each');
 var _extend = require('lodash/extend');
 var ApplicationException = require('jii/exceptions/ApplicationException');
@@ -16,8 +15,9 @@ var Model = require('jii-model/base/Model');
 var Collection = require('jii-model/base/Collection');
 var CollectionEvent = require('jii-model/model/CollectionEvent');
 var FilterBuilder = require('jii-ar-sql/FilterBuilder');
+var UnitTest = require('jii/server/base/UnitTest');
 
-global.tests = Jii.namespace('tests');
+require('./bootstrap');
 
 /**
  * @class tests.unit.ModelTest
@@ -25,11 +25,11 @@ global.tests = Jii.namespace('tests');
  */
 var self = Jii.defineClass('tests.unit.ModelTest', {
 
-	__extends: 'Jii.base.UnitTest',
+    __extends: UnitTest,
 
     _getModelInstances: function () {
         return [
-            new tests.unit.models.SampleModel()
+            new SampleModel()
         ];
     },
 
@@ -91,7 +91,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
     },
 
     eventsTest: function(test) {
-        var user = new tests.unit.models.User({
+        var user = new User({
             id: 533,
             email: 'aaa@example.com',
             name: 'Aaa'
@@ -142,7 +142,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         var article;
         var events = [];
 
-        tests.unit.models.Article.getDb = tests.unit.models.User.getDb = function() {};
+        Article.getDb = User.getDb = function() {};
 
         /**
          *
@@ -157,7 +157,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         };
 
         // Sub-model, change, exists: change:user
-        article = new tests.unit.models.Article({
+        article = new Article({
             user: {
                 id: 524,
                 name: 'John'
@@ -174,7 +174,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         test.deepEqual(events, []);
 
         // Sub-model, change, on not exists: change:user
-        article = new tests.unit.models.Article();
+        article = new Article();
         events = [];
         article.on('change:user', eventsFn);
         article.set({
@@ -196,7 +196,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         test.deepEqual(events, []);
 
         // Sub-model, change:key, exists: change:user.name
-        article = new tests.unit.models.Article({
+        article = new Article({
             user: {
                 id: 524,
                 email: 'john@example.com'
@@ -213,7 +213,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         test.deepEqual(events, []);
 
         // Sub-model, change:key, not exists: change:user.name
-        article = new tests.unit.models.Article();
+        article = new Article();
         events = [];
         article.on('change:user change:user.email', eventsFn);
         article.set({
@@ -258,7 +258,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         };
 
         // Sub-collection, change any, exists: change:links
-        article = new tests.unit.models.Article();
+        article = new Article();
         events = [];
         article.on('change:links', eventsFn);
         article.set('links', {id: 10, url: 'u1.com'});
@@ -271,7 +271,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         test.deepEqual(events, []);
 
         // Sub-collection, change index, exists: change:links[0]
-        article = new tests.unit.models.Article({
+        article = new Article({
             links: [
                 {id: 10, url: 'u1.com'},
                 {id: 11, url: 'u2.com'}
@@ -289,13 +289,13 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         test.deepEqual(events, []);
 
         // Sub-collection, change index, not exists: change:links[0]
-        article = new tests.unit.models.Article();
+        article = new Article();
         test.throws(function() {
             article.on('change:links[0]', eventsFn);
         }, InvalidParamException);
 
         // Sub-collection, change:key any, exists: change:links.url
-        article = new tests.unit.models.Article({
+        article = new Article({
             links: [
                 {id: 10, url: 'u1.com'},
                 {id: 11, url: 'u2.com'}
@@ -311,7 +311,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         test.deepEqual(events, []);
 
         // Sub-collection, change:key any, not exists: change:links.url
-        article = new tests.unit.models.Article();
+        article = new Article();
         events = [];
         article.on('change:links.url', eventsFn);
         article.set({
@@ -325,14 +325,14 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
 
         // Sub-collection, change:key any, not exists: change:links.url (off)
         events = [];
-        article = new tests.unit.models.Article();
+        article = new Article();
         article.on('change:links.url', eventsFn);
         article.off('change:links.url', eventsFn);
         article.set('links', {id: 10, url: 'qweqwe.net'});
         test.deepEqual(events, []);
 
         // Sub-collection, change:key index, exists: change:links[0].url
-        article = new tests.unit.models.Article({
+        article = new Article({
             links: [
                 {id: 10, url: 'u1.com'},
                 {id: 11, url: 'u2.com'}
@@ -348,13 +348,13 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         test.deepEqual(events, []);
 
         // Sub-collection, change:key index, not exists: change:links[0].url
-        article = new tests.unit.models.Article();
+        article = new Article();
         test.throws(function() {
             article.on('change:links[0].url', eventsFn);
         }, InvalidParamException);
 
         // Sub-collection, change:key.subKey any, exists: change:links.url.data
-        article = new tests.unit.models.Article({
+        article = new Article({
             links: [
                 {id: 10, url: 'u1.com', dataId: 75, data: {id: 75, value: 'u1'}},
                 {id: 11, url: 'u2.com', dataId: 79, data: {id: 79, value: 'u2'}}
@@ -370,7 +370,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         test.deepEqual(events, []);
 
         // Sub-collection, change:key.subKey any, not exists: change:links.url.data
-        article = new tests.unit.models.Article();
+        article = new Article();
         events = [];
         article.on('change:links.data', eventsFn);
         article.set({
@@ -383,7 +383,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         test.deepEqual(events, ['value']);
 
         // Sub-collection, change:key.subKey any, not exists: change:links.url.data (off)
-        article = new tests.unit.models.Article();
+        article = new Article();
         events = [];
         article.on('change:links.data', eventsFn);
         article.off('change:links.data', eventsFn);
@@ -400,7 +400,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
     },
 
     proxyTest: function(test) {
-        var article = new tests.unit.models.Article({
+        var article = new Article({
             id: 18,
             title: 'Test title'
         });
@@ -442,7 +442,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
             }
         };
 
-        var article = new tests.unit.models.Article({
+        var article = new Article({
             id: 4,
             title: 'My article'
         });
@@ -478,12 +478,12 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
             }
         };
 
-        var article = new tests.unit.models.Article({
+        var article = new Article({
             id: 4,
             userId: 10,
             title: 'My article'
         });
-        var user = new tests.unit.models.User({
+        var user = new User({
             id: 10,
             name: 'Ivan'
         });
@@ -521,7 +521,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         };
 
         var rootCollections = {};
-        tests.unit.models.Article.getDb = tests.unit.models.User.getDb = function() {
+        Article.getDb = User.getDb = function() {
             return {
                 getRootCollection: function(name) {
                     rootCollections[name] = rootCollections[name] || new Collection([], {modelClass: name});
@@ -537,27 +537,27 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
             }
         }
 
-        var article = new tests.unit.models.Article({
+        var article = new Article({
             id: 4,
             userId: 10,
             title: 'My article'
         });
-        var user = new tests.unit.models.User({
+        var user = new User({
             id: 10,
             name: 'Ivan'
         });
-        var user2 = new tests.unit.models.User({
+        var user2 = new User({
             id: 10,
             name: 'Qwerty'
         });
 
         rootCollections = {};
         article.on('change:user', eventsFn);
-        test.deepEqual(Object.keys(rootCollections), ['tests.unit.models.User']);
+        test.deepEqual(Object.keys(rootCollections), [User]);
 
         // fetch from root, then add
         test.strictEqual(article.get('user'), null);
-        rootCollections['tests.unit.models.User'].add(user);
+        rootCollections[User].add(user);
         test.strictEqual(article.get('user') === user, true);
         test.deepEqual(events, ['user']);
 
@@ -573,7 +573,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
 
         // Revert back model
         events = [];
-        rootCollections['tests.unit.models.User'].add(user2);
+        rootCollections[User].add(user2);
         test.strictEqual(article.get('user.name'), 'Qwerty');
         test.strictEqual(article.get('user.id'), 10);
         test.deepEqual(events, ['user']);
@@ -608,7 +608,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
         };
 
         var rootCollections = {};
-        tests.unit.models.Article.getDb = tests.unit.models.Link.getDb = function() {
+        Article.getDb = Link.getDb = function() {
             return {
                 getRootCollection: function(name) {
                     rootCollections[name] = rootCollections[name] || new Collection([], {modelClass: name});
@@ -624,13 +624,13 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
             }
         }
 
-        var article = new tests.unit.models.Article({
+        var article = new Article({
             id: 4,
             userId: 10,
             title: 'My article'
         });
         article.on('change:links', eventsFn);
-        rootCollections['tests.unit.models.Link'].set([
+        rootCollections[Link].set([
             {
                 id: 10,
                 articleId: 4,
@@ -647,8 +647,8 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
                 url: 'http://example.net'
             }
         ], {
-            modelClass: 'tests.unit.models.Link'
-        })
+            modelClass: Link
+        });
 
         test.strictEqual(article.get('links[0].url'), 'http://example.ru');
         test.deepEqual(events, ['added-10', 'added-11']);
@@ -674,7 +674,7 @@ var self = Jii.defineClass('tests.unit.ModelTest', {
                 {id: 11, articleId: 4, url: 'u2.com'}
             ]
         };
-        var article = new tests.unit.models.Article(data);
+        var article = new Article(data);
         article.get('links').sortBy(function(m){ return m.getPrimaryKey(); });
 
         test.deepEqual(article.getAttributesTree([

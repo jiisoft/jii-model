@@ -301,7 +301,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 			_each(row, (value, name) => {
 				if (_indexOf(columns, name) !== -1) {
 					record._attributes[name] = value;
-				} else if (record.canSetProperty(name)) {
+				} else if (record.canSetProperty(name) || record.hasRelation(name)) {
 					record.set(name, value);
 				}
 			});
@@ -322,7 +322,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 		 * @returns {Jii.base.ActiveRecord} the newly created active record
 		 */
 		instantiate(row) {
-			return new this();
+			return new this(row);
 		},
 
 		/**
@@ -1062,6 +1062,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
             }
 
             values = this.getDirtyAttributes(attributes);
+
             if (_isEmpty(values)) {
                 return this.afterSave(false, values).then(() => {
                     return 0;
@@ -1837,18 +1838,15 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
         items = items || [];
 
         var relation = this.getRelation(relationName);
-        var modelClassName = _isFunction(relation.modelClass) ?
-            relation.modelClass.className() :
-            relation.modelClass;
 
         var collection = null;
-        var rootCollection = this.__static.getDb() ? this.__static.getDb().getRootCollection(modelClassName) : null;
+        var rootCollection = this.__static.getDb() ? this.__static.getDb().getRootCollection(relation.modelClass) : null;
 
         if (rootCollection) {
             collection = rootCollection.createChild();
             collection.setFilter(relation);
         } else {
-            collection = new Collection([], {modelClass: modelClassName});
+            collection = new Collection([], {modelClass: relation.modelClass});
         }
 
         collection.setModels(items);
@@ -1871,7 +1869,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
             return;
         }
 
-        var modelClassName = Jii.namespace(relation.modelClass).className();
+        var modelClassName = Jii.namespace(relation.modelClass);
         var rootCollection = db.getRootCollection(modelClassName);
         if (!rootCollection) {
             return;
@@ -1924,7 +1922,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
         }
 
         var relation = this.getRelation(name);
-        var modelClassName = Jii.namespace(relation.modelClass).className();
+        var modelClassName = Jii.namespace(relation.modelClass);
         var rootCollection = this.__static.getDb().getRootCollection(modelClassName);
 
         var newModel = rootCollection.find(relation);

@@ -750,6 +750,11 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
                 throw new InvalidConfigException('Not found model class for create instance in collection, modelClass: ' + this.modelClass);
             }
 
+            if (_isFunction(modelClass.instantiate) && _isFunction(modelClass.populateRecord)) {
+                var model = modelClass.instantiate(data);
+                modelClass.populateRecord(model, data);
+                return model;
+            }
             return new modelClass(data);
         }
 
