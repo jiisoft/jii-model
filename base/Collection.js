@@ -249,7 +249,7 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
 
     /**
      *
-     * @param {function|Jii.sql.Query} value
+     * @param {function|Jii.base.Query} value
      */
     setFilter(value) {
         // @todo normalize code, remove duplicates
@@ -537,7 +537,7 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
 
     /**
      *
-     * @param {function|Jii.sql.Query} [filter]
+     * @param {function|Jii.base.Query} [filter]
      * @returns {Jii.base.Collection}
      */
     createChild(filter) {

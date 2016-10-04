@@ -16,6 +16,7 @@ var ModelEvent = require('jii/base/ModelEvent');
 var AfterSaveEvent = require('../model/AfterSaveEvent');
 var InvalidCallException = require('jii/exceptions/InvalidCallException');
 var Collection = require('../base/Collection');
+var ActiveQuery = require('./ActiveQuery');
 var _upperFirst = require('lodash/upperFirst');
 var _isArray = require('lodash/isArray');
 var _isObject = require('lodash/isObject');
@@ -140,6 +141,13 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 		 */
 		findAll(condition) {
 			return this._findByCondition(condition, false);
+		},
+
+		/**
+		 * @inheritdoc
+		 */
+		find() {
+			return new ActiveQuery(this);
 		},
 
         /**
@@ -394,7 +402,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 	 * @param {object} link the primary-foreign key constraint. The keys of the array refer to
 	 * the attributes of the record associated with the `class` model, while the values of the
 	 * array refer to the corresponding attributes in **this** AR class.
-	 * @returns {Jii.sql.ActiveQuery} the relational query object.
+	 * @returns {Jii.base.ActiveQuery} the relational query object.
 	 */
 	hasOne(className, link) {
 		/** @typedef {Jii.sql.ActiveRecord} classObject */
@@ -436,13 +444,13 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 	 * @param {object} link the primary-foreign key constraint. The keys of the array refer to
 	 * the attributes of the record associated with the `class` model, while the values of the
 	 * array refer to the corresponding attributes in **this** AR class.
-	 * @returns {Jii.sql.ActiveQuery} the relational query object.
+	 * @returns {Jii.base.ActiveQuery} the relational query object.
 	 */
 	hasMany(className, link) {
 		/** @type {class} ActiveRecordInterface */
 		var classObject = Jii.namespace(className);
 
-		/** @type {Jii.sql.ActiveQuery} */
+		/** @type {Jii.base.ActiveQuery} */
 		var query = classObject.find();
 		query.primaryModel = this;
 		query.link = link;
@@ -1378,7 +1386,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveRecord', /** @lends Jii.base.Ac
 	 * It can be declared in either the Active Record class itself or one of its behaviors.
 	 * @param {string} name the relation name
 	 * @param {boolean} [throwException] whether to throw exception if the relation does not exist.
-	 * @returns {Promise.<Jii.sql.ActiveQuery>} the relational query object. If the relation does not exist
+	 * @returns {Promise.<Jii.base.ActiveQuery>} the relational query object. If the relation does not exist
 	 * and `throwException` is false, null will be returned.
 	 * @throws {Jii.exceptions.InvalidParamException} if the named relation does not exist.
 	 */

@@ -10,7 +10,7 @@ var Collection = require('jii-model/base/Collection');
 var InvalidParamException = require('jii/exceptions/InvalidParamException');
 var ChangeEvent = require('jii-model/model/ChangeEvent');
 var CollectionEvent = require('jii-model/model/CollectionEvent');
-var Query = require('jii-ar-sql/Query');
+var Query = require('jii-model/base/Query');
 var FilterBuilder = require('jii-ar-sql/FilterBuilder');
 var UnitTest = require('jii/server/base/UnitTest');
 
