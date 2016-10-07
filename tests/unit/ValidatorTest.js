@@ -16,7 +16,7 @@ var UrlValidator = require('jii-model/validators/UrlValidator');
 var NumberValidator = require('jii-model/validators/NumberValidator');
 var RangeValidator = require('jii-model/validators/RangeValidator');
 var RegularExpressionValidator = require('jii-model/validators/RegularExpressionValidator');
-var UnitTest = require('jii/server/base/UnitTest');
+var UnitTest = require('jii/base/UnitTest');
 
 require('./bootstrap');
 

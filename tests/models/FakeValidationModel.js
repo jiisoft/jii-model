@@ -7,7 +7,7 @@ var Model = require('jii-model/base/Model');
  * @class tests.unit.models.FakeValidationModel
  * @extends Jii.base.Model
  */
-module.exports = Jii.defineClass('tests.unit.models.FakeValidationModel', {
+var FakeValidationModel = Jii.defineClass('tests.unit.models.FakeValidationModel', {
 
 	__extends: Model,
 
@@ -17,3 +17,5 @@ module.exports = Jii.defineClass('tests.unit.models.FakeValidationModel', {
     }
 
 });
+
+module.exports = FakeValidationModel;

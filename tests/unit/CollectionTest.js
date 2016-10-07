@@ -12,7 +12,7 @@ var ChangeEvent = require('jii-model/model/ChangeEvent');
 var CollectionEvent = require('jii-model/model/CollectionEvent');
 var Query = require('jii-model/base/Query');
 var FilterBuilder = require('jii-ar-sql/FilterBuilder');
-var UnitTest = require('jii/server/base/UnitTest');
+var UnitTest = require('jii/base/UnitTest');
 
 require('./bootstrap');
 

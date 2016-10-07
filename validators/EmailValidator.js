@@ -13,7 +13,7 @@ var Validator = require('./Validator');
  * @class Jii.validators.EmailValidator
  * @extends Jii.validators.Validator
  */
-module.exports = Jii.defineClass('Jii.validators.EmailValidator', /** @lends Jii.validators.EmailValidator.prototype */{
+var EmailValidator = Jii.defineClass('Jii.validators.EmailValidator', /** @lends Jii.validators.EmailValidator.prototype */{
 
     __extends: Validator,
 
@@ -46,3 +46,5 @@ module.exports = Jii.defineClass('Jii.validators.EmailValidator', /** @lends Jii
     }
 
 });
+
+module.exports = EmailValidator;

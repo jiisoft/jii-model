@@ -5,9 +5,9 @@ var ActiveRecord = require('./ActiveRecord.js');
 
 /**
  * @class tests.unit.models.LinkData
- * @extends Jii.base.ActiveRecord
+ * @extends Jii.base.BaseActiveRecord
  */
-module.exports = Jii.defineClass('tests.unit.models.LinkData', {
+var LinkData = Jii.defineClass('tests.unit.models.LinkData', {
 
 	__extends: ActiveRecord,
 
@@ -32,3 +32,5 @@ module.exports = Jii.defineClass('tests.unit.models.LinkData', {
 	}
 
 });
+
+module.exports = LinkData;

@@ -14,7 +14,7 @@ var Validator = require('./Validator');
  * @class Jii.validators.DateValidator
  * @extends Jii.validators.Validator
  */
-module.exports = Jii.defineClass('Jii.validators.DateValidator', /** @lends Jii.validators.DateValidator.prototype */{
+var DateValidator = Jii.defineClass('Jii.validators.DateValidator', /** @lends Jii.validators.DateValidator.prototype */{
 
     __extends: Validator,
 
@@ -53,3 +53,5 @@ module.exports = Jii.defineClass('Jii.validators.DateValidator', /** @lends Jii.
     }
 
 });
+
+module.exports = DateValidator;

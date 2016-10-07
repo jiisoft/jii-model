@@ -12,10 +12,12 @@ var Event = require('jii/base/Event');
  * @class Jii.model.ChangeEvent
  * @extends Jii.base.Event
  */
-module.exports = Jii.defineClass('Jii.model.ChangeEvent', /** @lends Jii.model.ChangeEvent.prototype */{
+var ChangeEvent = Jii.defineClass('Jii.model.ChangeEvent', /** @lends Jii.model.ChangeEvent.prototype */{
 
 	__extends: Event,
 
     changedAttributes: {}
 
 });
+
+module.exports = ChangeEvent;

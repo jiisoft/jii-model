@@ -10,7 +10,7 @@ var Jii = require('jii');
 /**
  * @class Jii.base.ModelAdapterInterface
  */
-module.exports = Jii.defineClass('Jii.base.ModelAdapterInterface', /** @lends Jii.base.ModelAdapterInterface.prototype */{
+var ModelAdapterInterface = Jii.defineClass('Jii.base.ModelAdapterInterface', /** @lends Jii.base.ModelAdapterInterface.prototype */{
 
     /**
      * @type {object|string[]|null}
@@ -36,3 +36,5 @@ module.exports = Jii.defineClass('Jii.base.ModelAdapterInterface', /** @lends Ji
     }
 
 });
+
+module.exports = ModelAdapterInterface;

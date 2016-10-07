@@ -6,9 +6,9 @@ var Link = require('./Link');
 
 /**
  * @class tests.unit.models.LinkJunction
- * @extends Jii.base.ActiveRecord
+ * @extends Jii.base.BaseActiveRecord
  */
-module.exports = Jii.defineClass('tests.unit.models.LinkJunction', {
+var LinkJunction = Jii.defineClass('tests.unit.models.LinkJunction', {
 
 	__extends: ActiveRecord,
 
@@ -34,3 +34,5 @@ module.exports = Jii.defineClass('tests.unit.models.LinkJunction', {
     }
 
 });
+
+module.exports = LinkJunction;

@@ -2,7 +2,8 @@ module.exports = require('jii');
 
 // AUTO-GENERATED Package files list
 if (!process.env.JII_NO_NAMESPACE) {
-    require('./base/ActiveRecord.js');
+    require('./base/ActiveQuery.js');
+    require('./base/BaseActiveRecord.js');
     require('./base/Collection.js');
     require('./base/CollectionAdapterInterface.js');
     require('./base/DataProvider.js');
@@ -11,7 +12,6 @@ if (!process.env.JII_NO_NAMESPACE) {
     require('./base/ModelAttributeSchema.js');
     require('./base/ModelSchema.js');
     require('./model/AfterSaveEvent.js');
-    require('./model/ArrayDataProvider.js');
     require('./model/ChangeAttributeEvent.js');
     require('./model/ChangeEvent.js');
     require('./model/CollectionEvent.js');

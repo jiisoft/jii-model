@@ -49,7 +49,7 @@ var Component = require('jii/base/Component');
  * @class Jii.base.Query
  * @extends Jii.base.Component
  */
-module.exports = Jii.defineClass('Jii.base.Query', /** @lends Jii.base.Query.prototype */{
+var Query = Jii.defineClass('Jii.base.Query', /** @lends Jii.base.Query.prototype */{
 
 	__extends: Component,
 
@@ -1483,3 +1483,5 @@ module.exports = Jii.defineClass('Jii.base.Query', /** @lends Jii.base.Query.pro
 	}
 
 });
+
+module.exports = Query;

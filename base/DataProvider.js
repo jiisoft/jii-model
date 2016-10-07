@@ -6,108 +6,134 @@
 'use strict';
 
 var Jii = require('jii');
-var _isObject = require('lodash/isObject');
-var _each = require('lodash/each');
+var InvalidConfigException = require('jii/exceptions/InvalidConfigException');
+var InvalidParamException = require('jii/exceptions/InvalidParamException');
 var Collection = require('./Collection');
+var Pagination = require('../data/Pagination');
+var _isNumber = require('lodash/isNumber');
+var _isArray = require('lodash/isArray');
+var _isObject = require('lodash/isObject');
+var _isFunction = require('lodash/isFunction');
 
 /**
- * BaseDataProvider provides a base class that implements the [[DataProviderInterface]].
+ * DataProvider provides a base class that implements the [[DataProviderInterface]].
  *
  * @class Jii.base.DataProvider
  * @extends Jii.base.Collection
  */
-module.exports = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.DataProvider.prototype */{
+var DataProvider = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.DataProvider.prototype */{
 
     __extends: Collection,
 
+    __static: /** @lends Jii.base.DataProvider */{
+
+        FETCH_MODE_SET: 'set',
+        FETCH_MODE_RESET: 'reset',
+
+    },
+
     /**
-     * @type {string} an ID that uniquely identifies the data provider among all data providers.
+     * @type {string|null} an ID that uniquely identifies the data provider among all data providers.
      * You should set this property if the same page contains two or more different data providers.
      * Otherwise, the [[pagination]] and [[sort]] may not work properly.
      */
     id: null,
 
+    /**
+     * @type {function|Jii.base.Query}
+     */
+    query: null,
+
+    /**
+     * @type {string}
+     */
+    fetchMode: 'add',
+
+    /**
+     * @type {Jii.data.Sort}
+     */
     _sort: null,
+
+    /**
+     * @type {Jii.data.Pagination}
+     */
     _pagination: null,
-    _keys: null,
-    _isModelsPrepare: false,
+
+    /**
+     * @type {number|null}
+     */
     _totalCount: null,
 
     /**
-     * Prepares the data models that will be made available in the current page.
-     * @returns {[]} the available data models
+     * @type {function[]|null}
      */
-    prepareModels() {
-
-    },
+    _fetchCallbacks: null,
 
     /**
-     * Prepares the keys associated with the currently available data models.
-     * @param {[]} models the available data models
-     * @returns {[]} the keys
-     */
-    prepareKeys(models) {
-
-    },
-
-    /**
-     * Returns a value indicating the total number of data models in this data provider.
-     * @returns {number} total number of data models in this data provider.
-     */
-    prepareTotalCount() {
-
-    },
-
-    /**
-     * Prepares the data models and keys.
      *
-     * This method will prepare the data models and keys that can be retrieved via
-     * [[getModels()]] and [[getKeys()]].
-     *
-     * This method will be implicitly called by [[getModels()]] and [[getKeys()]] if it has not been called before.
-     *
-     * @param {boolean} [forcePrepare] whether to force data preparation even if it has been done before.
+     * @param {object} [params]
+     * @param {boolean} [force]
+     * @return {*}
      */
-    prepare(forcePrepare) {
-        forcePrepare = forcePrepare || false;
+    fetch(params = {}, force = false) {
+        if (this._isFetched && !force) {
+            return Promise.resolve(false);
+        }
 
-        if (forcePrepare || !this._isModelsPrepare) {
-            this.splice(0, this.length);
-            _each(this.prepareModels(), model => {
-                this.push(model);
+        // Queue promises when fetch in process
+        if (this._fetchCallbacks !== null) {
+            return new Promise(resolve => {
+                this._fetchCallbacks.push(resolve)
             });
         }
-        if (forcePrepare || this._keys === null) {
-            this._keys = this.prepareKeys(this._models);
-        }
-    },
+        this._fetchCallbacks = [];
 
-    /**
-     * Returns the data models in the current page.
-     * @returns {[]} the list of data models in the current page.
-     */
-    getModels() {
-        this.prepare();
-        return this.__super();
-    },
+        return Promise.resolve()
+            .then(() => {
 
-    /**
-     * Returns the key values associated with the data models.
-     * @returns {[]} the list of key values corresponding to [[models]]. Each data model in [[models]]
-     * is uniquely identified by the corresponding key value in this array.
-     */
-    getKeys() {
-        this.prepare();
+                // Query as function
+                if (_isFunction(this.query)) {
+                    return this.query(params);
+                }
 
-        return this._keys;
-    },
+                // TODO Query, REST, ...
+                throw new InvalidConfigException('Wrong query format in DataProvider.');
+            })
+            .then(data => {
+                // Validate response
+                if (!data) {
+                    throw new InvalidParamException('Result data is not object in DataProvider.fetch().');
+                }
+                if (!_isNumber(data.totalCount)) {
+                    throw new InvalidParamException('Result param "totalCount" must be number in DataProvider.fetch().');
+                }
+                if (!_isArray(data.models)) {
+                    throw new InvalidParamException('Result param "models" must be array in DataProvider.fetch().');
+                }
 
-    /**
-     * Sets the key values associated with the data models.
-     * @param {[]} keys the list of key values corresponding to [[models]].
-     */
-    setKeys(keys) {
-        this._keys = keys;
+                this.setTotalCount(data.totalCount);
+
+                switch(this.fetchMode) {
+                    case this.__static.FETCH_MODE_SET:
+                        this.set(data.models);
+                        break;
+
+                    case this.__static.FETCH_MODE_RESET:
+                        this.reset(data.models);
+                        break;
+                }
+
+                // Resolve queue promises after current
+                var callbacks = this._fetchCallbacks;
+                this._fetchCallbacks = null;
+                setTimeout(() => {
+                    callbacks.forEach(callback => {
+                        callback(data.models);
+                    });
+                });
+
+                return data;
+            });
     },
 
     /**
@@ -141,57 +167,47 @@ module.exports = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.Da
      * @returns {jii.data.Pagination|boolean} the pagination object. If this is false, it means the pagination is disabled.
      */
     getPagination() {
-        // @todo Pagination & Sort
-        /*if (this._pagination === null) {
-         this.setPagination({});
-         }
+        if (this._pagination === null) {
+            this.setPagination({});
+        }
 
-         return this._pagination;*/
+        return this._pagination;
     },
 
     /**
      * Sets the pagination for this data provider.
-     * @param {[]|jii.data.Pagination|boolean} value the pagination to be used by this data provider.
-     * This can be one of the following:
-     *
-     * - a configuration array for creating the pagination object. The "class" element defaults
-     *   to 'jii\data\Pagination'
-     * - an instance of [[Pagination]] or its subclass
-     * - false, if pagination needs to be disabled.
-     *
+     * @param {object|Jii.data.Pagination|boolean} value the pagination to be used by this data provider.
      * @throws InvalidParamException
      */
     setPagination(value) {
-        // @todo Pagination & Sort
-        /*if (_isObject(value)) {
-         config = {class: Pagination.className()};
-         if (this.id !== null) {
-         config['pageParam'] = this.id . '-page';
-         config['pageSizeParam'] = this.id . '-per-page';
-         }
-         this._pagination = Jii.createObject(array_merge(config, value));
-         } else if (value instanceof Pagination || value === false) {
-         this._pagination = value;
-         } else {
-         throw new InvalidParamException('Only Pagination instance, configuration array or false is allowed.');
-         }*/
+        if (_isObject(value)) {
+            let config = {className: Pagination};
+            if (this.id !== null) {
+                config.pageParam = `${this.id}-page`;
+                config.pageSizeParam = `${this.id}-per-page`;
+            }
+            this._pagination = Jii.createObject(Jii.mergeConfigs(config, value));
+        } else if (value instanceof Pagination || value === false) {
+            this._pagination = value;
+        } else {
+            throw new InvalidParamException('Only Pagination instance, configuration object or false is allowed.');
+        }
     },
 
     /**
-     * @returns {jii.data.Sort|boolean} the sorting object. If this is false, it means the sorting is disabled.
+     * @returns {Jii.data.Sort|boolean} the sorting object. If this is false, it means the sorting is disabled.
      */
     getSort() {
-        // @todo Pagination & Sort
-        /*if (this._sort === null) {
-         this.setSort({});
-         }
+        if (this._sort === null) {
+            this.setSort({});
+        }
 
-         return this._sort;*/
+        return this._sort;
     },
 
     /**
      * Sets the sort definition for this data provider.
-     * @param {[]|jii.data.Sort|boolean} value the sort definition to be used by this data provider.
+     * @param {object|Jii.data.Sort|boolean} value the sort definition to be used by this data provider.
      * This can be one of the following:
      *
      * - a configuration array for creating the sort definition object. The "class" element defaults
@@ -202,30 +218,20 @@ module.exports = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.Da
      * @throws InvalidParamException
      */
     setSort(value) {
-        // @todo Pagination & Sort
-        /*if (_isObject(value)) {
-         config = {class: Sort.className()};
-         if (this.id !== null) {
-         config['sortParam'] = this.id . '-sort';
-         }
-         this._sort = Jii.createObject(array_merge(config, value));
-         } else if (value instanceof Sort || value === false) {
-         this._sort = value;
-         } else {
-         throw new InvalidParamException('Only Sort instance, configuration array or false is allowed.');
-         }*/
-    },
 
-    /**
-     * Refreshes the data provider.
-     * After calling this method, if [[getModels()]], [[getKeys()]] or [[getTotalCount()]] is called again,
-     * they will re-execute the query and return the latest data available.
-     */
-    refresh() {
-        this.splice(0, this.length);
-        this._totalCount = null;
-        this._keys = null;
+        if (_isObject(value)) {
+            let config = {/*className: Sort*/}; // @todo Sort implementation
+            if (this.id !== null) {
+                config.sortParam = `${this.id}-sort`;
+            }
+            this._sort = Jii.createObject(Jii.mergeConfigs(config, value));
+        } else if (/*value instanceof Sort ||*/ value === false) { // @todo Sort implementation
+            this._sort = value;
+        } else {
+            throw new InvalidParamException('Only Sort instance, configuration object or false is allowed.');
+        }
     }
 
-
 });
+
+module.exports = DataProvider;

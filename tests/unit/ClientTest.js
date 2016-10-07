@@ -5,7 +5,7 @@ var Article = require('../models/Article');
 var Collection = require('jii-model/base/Collection');
 var UnknownPropertyException = require('jii/exceptions/UnknownPropertyException');
 var InvalidParamException = require('jii/exceptions/InvalidParamException');
-var UnitTest = require('jii/server/base/UnitTest');
+var UnitTest = require('jii/base/UnitTest');
 
 require('./bootstrap');
 

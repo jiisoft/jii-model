@@ -21,7 +21,7 @@ var Object = require('jii/base/Object');
  * @class Jii.validators.Validator
  * @extends Jii.base.Object
  */
-module.exports = Jii.defineClass('Jii.validators.Validator', /** @lends Jii.validators.Validator.prototype */{
+var Validator = Jii.defineClass('Jii.validators.Validator', /** @lends Jii.validators.Validator.prototype */{
 
 	__extends: Object,
 
@@ -172,3 +172,5 @@ module.exports = Jii.defineClass('Jii.validators.Validator', /** @lends Jii.vali
 
 
 });
+
+module.exports = Validator;

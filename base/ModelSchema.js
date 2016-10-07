@@ -21,7 +21,7 @@ var Object = require('jii/base/Object');
  * @class Jii.base.ModelSchema
  * @extends Jii.base.Object
  */
-module.exports = Jii.defineClass('Jii.base.ModelSchema', /** @lends Jii.base.ModelSchema.prototype */{
+var ModelSchema = Jii.defineClass('Jii.base.ModelSchema', /** @lends Jii.base.ModelSchema.prototype */{
 
 	__extends: Object,
 
@@ -118,3 +118,5 @@ module.exports = Jii.defineClass('Jii.base.ModelSchema', /** @lends Jii.base.Mod
     }
 
 });
+
+module.exports = ModelSchema;

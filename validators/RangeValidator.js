@@ -15,7 +15,7 @@ var Validator = require('./Validator');
  * @class Jii.validators.RangeValidator
  * @extends Jii.validators.Validator
  */
-module.exports = Jii.defineClass('Jii.validators.RangeValidator', /** @lends Jii.validators.RangeValidator.prototype */{
+var RangeValidator = Jii.defineClass('Jii.validators.RangeValidator', /** @lends Jii.validators.RangeValidator.prototype */{
 
     __extends: Validator,
 
@@ -63,3 +63,5 @@ module.exports = Jii.defineClass('Jii.validators.RangeValidator', /** @lends Jii
     }
 
 });
+
+module.exports = RangeValidator;

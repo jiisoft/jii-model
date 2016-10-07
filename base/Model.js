@@ -33,7 +33,7 @@ var Component = require('jii/base/Component');
  * @class Jii.base.Model
  * @extends Jii.base.Component
  */
-module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
+var Model = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.prototype */{
 
     __extends: Component,
 
@@ -46,7 +46,7 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
     _editedSubModels: [],
     _editedChanges: {},
 
-    __static: /** @lends Jii.base.Model */{
+    __static: /** Jii.base.Model */{
 
         /**
          * @event Jii.base.Model#change
@@ -268,7 +268,7 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
      * @param {string} name
      * @param {string} [prefix]
      * @param {boolean} [skipThrow]
-     * @returns {{model: Jii.base.ActiveRecord, name: string, subName: string}|null}
+     * @returns {{model: Jii.base.BaseActiveRecord, name: string, subName: string}|null}
      * @protected
      */
     _detectKeyFormatCollection(name, prefix, skipThrow) {
@@ -308,7 +308,7 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
      *
      * @param {string} name
      * @param {string} [prefix]
-     * @returns {{model: Jii.base.ActiveRecord|null, name: string, subName: string}|null}
+     * @returns {{model: Jii.base.BaseActiveRecord|null, name: string, subName: string}|null}
      * @protected
      */
     _detectKeyFormatModel(name, prefix) {
@@ -891,7 +891,7 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
     /**
      * Returns the first error of the specified attribute.
      * @param {string} attribute attribute name.
-     * @returns {string} the error message. Null is returned if no error.
+     * @returns {string|null} the error message. Null is returned if no error.
      * @see getErrors()
      * @see getFirstErrors()
      */
@@ -912,3 +912,5 @@ module.exports = Jii.defineClass('Jii.base.Model', /** @lends Jii.base.Model.pro
     }
 
 });
+
+module.exports = Model;

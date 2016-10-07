@@ -85,7 +85,7 @@ var _uniq = require('lodash/uniq');
  * @class Jii.base.ActiveQuery
  * @extends Jii.base.Query
  */
-module.exports = Jii.defineClass('Jii.base.ActiveQuery', /** @lends Jii.base.ActiveQuery.prototype */{
+var ActiveQuery = Jii.defineClass('Jii.base.ActiveQuery', /** @lends Jii.base.ActiveQuery.prototype */{
 
 	__extends: Query,
 
@@ -231,7 +231,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveQuery', /** @lends Jii.base.Act
 	 */
 	prepare(builder) {
 		// NOTE: because the same ActiveQuery may be used to build different SQL statements
-		// (e.g. by ActiveDataProvider, one for count query, the other for row data query,
+		// (e.g. by DataProvider, one for count query, the other for row data query,
 		// it is important to make sure the same ActiveQuery can be used to build SQL statements
 		// multiple times.
 		if (!_isEmpty(this._joinWith)) {
@@ -942,7 +942,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveQuery', /** @lends Jii.base.Act
 	 * Finds the related records for the specified primary record.
 	 * This method is invoked when a relation of an ActiveRecord is being accessed in a lazy fashion.
 	 * @param {string} name the relation name
-	 * @param {Jii.base.ActiveRecord} model the primary model
+	 * @param {Jii.base.BaseActiveRecord} model the primary model
 	 * @returns {*} the related record(s)
 	 * @throws InvalidParamException if the relation is invalid
 	 */
@@ -954,7 +954,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveQuery', /** @lends Jii.base.Act
 				return related;
 			}
 
-			var ActiveRecord = require('./ActiveRecord');
+			var ActiveRecord = require('./BaseActiveRecord');
 			var inverseRelation = (new this.modelClass()).getRelation(this._inverseOf);
 
 			if (this.multiple) {
@@ -1022,7 +1022,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveQuery', /** @lends Jii.base.Act
 			if (primaryModels.length === 1 && !this.multiple) {
 				return this.one().then(model => {
 
-					var ActiveRecord = require('./ActiveRecord');
+					var ActiveRecord = require('./BaseActiveRecord');
 					_each(primaryModels, (primaryModel, i) => {
 						if (primaryModel instanceof ActiveRecord) {
 							primaryModel.populateRelation(name, model);
@@ -1082,7 +1082,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveQuery', /** @lends Jii.base.Act
 						value = buckets[key] || (this.multiple ? [] : null);
 					}
 
-					var ActiveRecord = require('./ActiveRecord');
+					var ActiveRecord = require('./BaseActiveRecord');
 					if (primaryModel instanceof ActiveRecord) {
 						primaryModel.populateRelation(name, value);
 					} else {
@@ -1111,7 +1111,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveQuery', /** @lends Jii.base.Act
 		}
 
 		var model = models[0];
-		var ActiveRecord = require('./ActiveRecord');
+		var ActiveRecord = require('./BaseActiveRecord');
 
 		/** @typedef {Jii.base.ActiveQuery} relation */
 		var relation = model instanceof ActiveRecord ?
@@ -1342,7 +1342,7 @@ module.exports = Jii.defineClass('Jii.base.ActiveQuery', /** @lends Jii.base.Act
 		this._filterByModels(primaryModels);
 		/** @typedef {ActiveRecord} primaryModel */
 		var primaryModel = primaryModels[0];
-		var ActiveRecord = require('./ActiveRecord');
+		var ActiveRecord = require('./BaseActiveRecord');
 
 		if (!(primaryModel instanceof ActiveRecord)) {
 			// when primaryModels are array of arrays (asArray case)
@@ -1598,3 +1598,5 @@ module.exports = Jii.defineClass('Jii.base.ActiveQuery', /** @lends Jii.base.Act
 		return relations;
 	}
 });
+
+module.exports = ActiveQuery;

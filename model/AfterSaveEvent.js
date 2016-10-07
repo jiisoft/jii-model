@@ -12,7 +12,7 @@ var ModelEvent = require('jii/base/ModelEvent');
  * @class Jii.model.AfterSaveEvent
  * @extends Jii.base.ModelEvent
  */
-module.exports = Jii.defineClass('Jii.model.AfterSaveEvent', /** @lends Jii.model.AfterSaveEvent.prototype */{
+var AfterSaveEvent = Jii.defineClass('Jii.model.AfterSaveEvent', /** @lends Jii.model.AfterSaveEvent.prototype */{
 
 	__extends: ModelEvent,
 
@@ -23,3 +23,5 @@ module.exports = Jii.defineClass('Jii.model.AfterSaveEvent', /** @lends Jii.mode
 	changedAttributes: null
 
 });
+
+module.exports = AfterSaveEvent;

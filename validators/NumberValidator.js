@@ -13,7 +13,7 @@ var Validator = require('./Validator');
  * @class Jii.validators.NumberValidator
  * @extends Jii.validators.Validator
  */
-module.exports = Jii.defineClass('Jii.validators.NumberValidator', /** @lends Jii.validators.NumberValidator.prototype */{
+var NumberValidator = Jii.defineClass('Jii.validators.NumberValidator', /** @lends Jii.validators.NumberValidator.prototype */{
 
     __extends: Validator,
 
@@ -80,3 +80,5 @@ module.exports = Jii.defineClass('Jii.validators.NumberValidator', /** @lends Ji
     }
 
 });
+
+module.exports = NumberValidator;

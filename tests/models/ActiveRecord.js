@@ -1,15 +1,15 @@
 'use strict';
 
 var Jii = require('jii');
-var ActiveRecord = require('jii-model/base/ActiveRecord');
+var BaseActiveRecord = require('jii-model/base/BaseActiveRecord');
 
 /**
  * @class tests.unit.models.ActiveRecord
- * @extends Jii.base.ActiveRecord
+ * @extends Jii.base.BaseActiveRecord
  */
-module.exports = Jii.defineClass('tests.unit.models.ActiveRecord', {
+var ActiveRecord = Jii.defineClass('tests.unit.models.ActiveRecord', {
 
-	__extends: ActiveRecord,
+	__extends: BaseActiveRecord,
 
 	__static: {
 
@@ -22,3 +22,5 @@ module.exports = Jii.defineClass('tests.unit.models.ActiveRecord', {
 	}
 
 });
+
+module.exports = ActiveRecord;

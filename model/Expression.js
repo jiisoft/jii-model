@@ -25,7 +25,7 @@ var Object = require('jii/base/Object');
  * @class Jii.model.Expression
  * @extends Jii.base.Object
  */
-module.exports = Jii.defineClass('Jii.model.Expression', /** @lends Jii.model.Expression.prototype */{
+var Expression = Jii.defineClass('Jii.model.Expression', /** @lends Jii.model.Expression.prototype */{
 
 	__extends: Object,
 
@@ -66,3 +66,5 @@ module.exports = Jii.defineClass('Jii.model.Expression', /** @lends Jii.model.Ex
 	}
 
 });
+
+module.exports = Expression;

@@ -12,7 +12,7 @@ var Event = require('jii/base/Event');
  * @class Jii.model.CollectionEvent
  * @extends Jii.base.Event
  */
-module.exports = Jii.defineClass('Jii.model.CollectionEvent', /** @lends Jii.model.CollectionEvent.prototype */{
+var CollectionEvent = Jii.defineClass('Jii.model.CollectionEvent', /** @lends Jii.model.CollectionEvent.prototype */{
 
 	__extends: Event,
 
@@ -29,9 +29,16 @@ module.exports = Jii.defineClass('Jii.model.CollectionEvent', /** @lends Jii.mod
     removed: [],
 
     /**
+     * @type {boolean}
+     */
+    isFetch: false,
+
+    /**
      *
      * @type {boolean}
      */
     isSorted: false
 
 });
+
+module.exports = CollectionEvent;

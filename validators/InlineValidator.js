@@ -14,7 +14,7 @@ var Validator = require('./Validator');
  * @class Jii.validators.InlineValidator
  * @extends Jii.validators.Validator
  */
-module.exports = Jii.defineClass('Jii.validators.InlineValidator', /** @lends Jii.validators.InlineValidator.prototype */{
+var InlineValidator = Jii.defineClass('Jii.validators.InlineValidator', /** @lends Jii.validators.InlineValidator.prototype */{
 
     __extends: Validator,
 
@@ -40,3 +40,5 @@ module.exports = Jii.defineClass('Jii.validators.InlineValidator', /** @lends Ji
     }
 
 });
+
+module.exports = InlineValidator;

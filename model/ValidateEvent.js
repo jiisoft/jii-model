@@ -12,10 +12,12 @@ var Event = require('jii/base/Event');
  * @class Jii.model.ValidateEvent
  * @extends Jii.base.Event
  */
-module.exports = Jii.defineClass('Jii.model.ValidateEvent', /** @lends Jii.model.ValidateEvent.prototype */{
+var ValidateEvent = Jii.defineClass('Jii.model.ValidateEvent', /** @lends Jii.model.ValidateEvent.prototype */{
 
 	__extends: Event,
 
     errors: {}
 
 });
+
+module.exports = ValidateEvent;

@@ -5,9 +5,9 @@ var ActiveRecord = require('./ActiveRecord.js');
 
 /**
  * @class tests.unit.models.User
- * @extends Jii.base.ActiveRecord
+ * @extends Jii.base.BaseActiveRecord
  */
-module.exports = Jii.defineClass('tests.unit.models.User', {
+var User = Jii.defineClass('tests.unit.models.User', {
 
 	__extends: ActiveRecord,
 
@@ -37,3 +37,5 @@ module.exports = Jii.defineClass('tests.unit.models.User', {
 	}
 
 });
+
+module.exports = User;

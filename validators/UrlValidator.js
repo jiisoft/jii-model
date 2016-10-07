@@ -14,7 +14,7 @@ var Validator = require('./Validator');
  * @class Jii.validators.UrlValidator
  * @extends Jii.validators.Validator
  */
-module.exports = Jii.defineClass('Jii.validators.UrlValidator', /** @lends Jii.validators.UrlValidator.prototype */{
+var UrlValidator = Jii.defineClass('Jii.validators.UrlValidator', /** @lends Jii.validators.UrlValidator.prototype */{
 
     __extends: Validator,
 
@@ -66,3 +66,5 @@ module.exports = Jii.defineClass('Jii.validators.UrlValidator', /** @lends Jii.v
     }
 
 });
+
+module.exports = UrlValidator;

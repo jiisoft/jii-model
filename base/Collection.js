@@ -50,7 +50,7 @@ var Component = require('jii/base/Component');
  * @extends Jii.base.Component
  * @extends Array
  */
-module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype */{
+var Collection = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Collection.prototype */{
 
     __extends: Component,
 
@@ -61,6 +61,12 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
          * @property {Jii.model.CollectionEvent} event
          */
         EVENT_ADD: 'add',
+
+        /**
+         * @event Jii.base.Collection#change
+         * @property {Jii.model.CollectionEvent} event
+         */
+        EVENT_FETCH: 'fetch',
 
         /**
          * @event Jii.base.Collection#change
@@ -97,6 +103,11 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
      * @type {Jii.base.Collection}
      */
     parent: null,
+
+    /**
+     * @type {boolean}
+     */
+    _isFetched: false,
 
     _byId: {},
     _filter: null,
@@ -338,6 +349,13 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
     },
 
     /**
+     * @return {boolean}
+     */
+    isFetched() {
+        return this._isFetched;
+    },
+
+    /**
      *
      * @param {object|Jii.base.CollectionAdapterInterface} collectionAdapter
      */
@@ -390,7 +408,7 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
             });
 
             // Revert changes
-            // @todo
+            // TODO
         }
     },
 
@@ -414,6 +432,9 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
                 event => {
                     if (event.added.length > 0) {
                         this.trigger(this.__static.EVENT_ADD, event);
+                    }
+                    if (event.isFetch) {
+                        this.trigger(this.__static.EVENT_FETCH, event);
                     }
                     if (event.removed.length > 0) {
                         this.trigger(this.__static.EVENT_REMOVE, event);
@@ -576,6 +597,11 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
     _change(startIndex, toAdd, toRemove, unique) {
         unique = unique || false;
 
+        var isFirstUpdate = !this.isFetched();
+
+        // Mark as fetched on any adds
+        this._isFetched = true;
+
         var added = [];
         var removed = [];
         var isSorted = false;
@@ -594,7 +620,7 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
                 Array.prototype.splice.call(this, index, 1);
 
                 // By id
-                var ActiveRecord = require('./ActiveRecord');
+                var ActiveRecord = require('./BaseActiveRecord');
                 if (model instanceof ActiveRecord) {
                     delete this._byId[this._getPrimaryKey(model)];
                 }
@@ -627,7 +653,7 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
                     Array.prototype.splice.call(this, startIndex++, 0, model);
 
                     // By id
-                    var ActiveRecord = require('./ActiveRecord');
+                    var ActiveRecord = require('./BaseActiveRecord');
                     if (model instanceof ActiveRecord) {
                         this._byId[this._getPrimaryKey(model)] = model;
                     }
@@ -654,6 +680,7 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
 
         // Trigger events
         this._editedEvents.push(new CollectionEvent({
+            isFetch: isFirstUpdate,
             added: added,
             removed: removed
         }));
@@ -694,7 +721,7 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
      * @returns {string}
      */
     _getPrimaryKey(data) {
-        var ActiveRecord = require('./ActiveRecord');
+        var ActiveRecord = require('./BaseActiveRecord');
         if (_isObject(data) && this.modelClass && !(data instanceof ActiveRecord)) {
             data = this.createModel(data);
         }
@@ -1316,3 +1343,5 @@ module.exports = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
     }
 
 });
+
+module.exports = Collection;

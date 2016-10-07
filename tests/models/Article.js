@@ -8,9 +8,9 @@ var LinkJunction = require('./LinkJunction');
 
 /**
  * @class Article
- * @extends Jii.base.ActiveRecord
+ * @extends Jii.base.BaseActiveRecord
  */
-module.exports = Jii.defineClass('Article', {
+var Article = Jii.defineClass('Article', {
 
 	__extends: ActiveRecord,
 
@@ -59,3 +59,5 @@ module.exports = Jii.defineClass('Article', {
     }
 
 });
+
+module.exports = Article;

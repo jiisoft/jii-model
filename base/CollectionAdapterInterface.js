@@ -10,7 +10,7 @@ var Jii = require('jii');
 /**
  * @class Jii.base.CollectionAdapterInterface
  */
-module.exports = Jii.defineClass('Jii.base.CollectionAdapterInterface', /** @lends Jii.base.CollectionAdapterInterface.prototype */{
+var CollectionAdapterInterface = Jii.defineClass('Jii.base.CollectionAdapterInterface', /** @lends Jii.base.CollectionAdapterInterface.prototype */{
 
 
     /**
@@ -42,3 +42,5 @@ module.exports = Jii.defineClass('Jii.base.CollectionAdapterInterface', /** @len
     }
 
 });
+
+module.exports = CollectionAdapterInterface;

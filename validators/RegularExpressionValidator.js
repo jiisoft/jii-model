@@ -14,7 +14,7 @@ var Validator = require('./Validator');
  * @class Jii.validators.RegularExpressionValidator
  * @extends Jii.validators.Validator
  */
-module.exports = Jii.defineClass('Jii.validators.RegularExpressionValidator', /** @lends Jii.validators.RegularExpressionValidator.prototype */{
+var RegularExpressionValidator = Jii.defineClass('Jii.validators.RegularExpressionValidator', /** @lends Jii.validators.RegularExpressionValidator.prototype */{
 
     __extends: Validator,
 
@@ -47,3 +47,5 @@ module.exports = Jii.defineClass('Jii.validators.RegularExpressionValidator', /*
     }
 
 });
+
+module.exports = RegularExpressionValidator;
