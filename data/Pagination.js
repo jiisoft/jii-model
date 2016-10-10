@@ -67,7 +67,7 @@ var Pagination = Jii.defineClass('Jii.data.Pagination', /** @lends Jii.data.Pagi
     params: null,
 
     /**
-     * @type {Jii.urlManager.UrlManager|null} the URL manager used for creating pagination URLs. If not set,
+     * @type {Jii.request.UrlManager|null} the URL manager used for creating pagination URLs. If not set,
      * the "urlManager" application component will be used.
      */
     urlManager: null,
