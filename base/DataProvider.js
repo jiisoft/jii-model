@@ -10,10 +10,13 @@ var InvalidConfigException = require('jii/exceptions/InvalidConfigException');
 var InvalidParamException = require('jii/exceptions/InvalidParamException');
 var Collection = require('./Collection');
 var Pagination = require('../data/Pagination');
+var DataProviderEvent = require('../model/DataProviderEvent');
 var _isNumber = require('lodash/isNumber');
 var _isArray = require('lodash/isArray');
 var _isObject = require('lodash/isObject');
 var _isFunction = require('lodash/isFunction');
+var _findKey = require('lodash/findKey');
+var _has = require('lodash/has');
 
 /**
  * DataProvider provides a base class that implements the [[DataProviderInterface]].
@@ -47,7 +50,12 @@ var DataProvider = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.
     /**
      * @type {string}
      */
-    fetchMode: 'add',
+    fetchMode: 'set',
+
+    /**
+     * @type {boolean}
+     */
+    autoFetch: true,
 
     /**
      * @type {Jii.data.Sort}
@@ -55,14 +63,14 @@ var DataProvider = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.
     _sort: null,
 
     /**
-     * @type {Jii.data.Pagination}
+     * @type {Jii.data.Pagination|boolean}
      */
     _pagination: null,
 
     /**
      * @type {number|null}
      */
-    _totalCount: null,
+    _totalCount: 0,
 
     /**
      * @type {function[]|null}
@@ -70,30 +78,44 @@ var DataProvider = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.
     _fetchCallbacks: null,
 
     /**
+     * @type {object}
+     */
+    _fetchedKeys: {},
+
+    init() {
+        if (this.autoFetch) {
+            this.fetch();
+        }
+    },
+
+    /**
      *
-     * @param {object} [params]
      * @param {boolean} [force]
      * @return {*}
      */
-    fetch(params = {}, force = false) {
-        if (this._isFetched && !force) {
-            return Promise.resolve(false);
-        }
-
+    fetch(force = false) {
         // Queue promises when fetch in process
         if (this._fetchCallbacks !== null) {
             return new Promise(resolve => {
                 this._fetchCallbacks.push(resolve)
             });
         }
-        this._fetchCallbacks = [];
 
+        if (this.isFetched() && !force) {
+            return Promise.resolve(false);
+        }
+
+        this._fetchCallbacks = [];
         return Promise.resolve()
             .then(() => {
 
                 // Query as function
                 if (_isFunction(this.query)) {
-                    return this.query(params);
+                    const pagination = this.getPagination();
+                    return this.query(
+                        pagination ? pagination.getPage() : null,
+                        pagination ? pagination.getPageSize() : null
+                    );
                 }
 
                 // TODO Query, REST, ...
@@ -104,23 +126,32 @@ var DataProvider = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.
                 if (!data) {
                     throw new InvalidParamException('Result data is not object in DataProvider.fetch().');
                 }
-                if (!_isNumber(data.totalCount)) {
+                if (data.totalCount && !_isNumber(data.totalCount)) {
                     throw new InvalidParamException('Result param "totalCount" must be number in DataProvider.fetch().');
                 }
                 if (!_isArray(data.models)) {
                     throw new InvalidParamException('Result param "models" must be array in DataProvider.fetch().');
                 }
 
-                this.setTotalCount(data.totalCount);
+                if (_isNumber(data.totalCount)) {
+                    this.setTotalCount(data.totalCount);
+                }
 
-                switch(this.fetchMode) {
-                    case this.__static.FETCH_MODE_SET:
-                        this.set(data.models);
-                        break;
+                // No changes, but fetch
+                if (!this.isFetched() && data.models.length === 0 && this.length === 0) {
+                    this.trigger(this.__static.EVENT_FETCH, this._createEvent({
+                        isFetch: true
+                    }));
+                } else {
+                    switch(this.fetchMode) {
+                        case this.__static.FETCH_MODE_SET:
+                            this.setModels(data.models);
+                            break;
 
-                    case this.__static.FETCH_MODE_RESET:
-                        this.reset(data.models);
-                        break;
+                        case this.__static.FETCH_MODE_RESET:
+                            this.reset(data.models);
+                            break;
+                    }
                 }
 
                 // Resolve queue promises after current
@@ -136,6 +167,25 @@ var DataProvider = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.
             });
     },
 
+    isFetched() {
+        if (!this.__super()) {
+            return false;
+        }
+
+        var pagination = this.getPagination();
+        if (pagination) {
+            let needFetch = false;
+            pagination.getIndexes().forEach(index => {
+                if (!_has(this._fetchedKeys, index.toString()) && index < this.getTotalCount() - 1) {
+                    needFetch = true;
+                }
+            });
+            return !needFetch;
+        }
+
+        return true;
+    },
+
     /**
      * Returns the total number of data models.
      * When [[pagination]] is false, this returns the same value as [[count]].
@@ -144,11 +194,8 @@ var DataProvider = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.
      */
     getTotalCount() {
         if (this.getPagination() === false) {
-            return this.getCount();
-        } else if (this._totalCount === null) {
-            this._totalCount = this.prepareTotalCount();
+            return this.parent ? this.parent.getCount() : this.getCount();
         }
-
         return this._totalCount;
     },
 
@@ -158,13 +205,18 @@ var DataProvider = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.
      */
     setTotalCount(value) {
         this._totalCount = value;
+
+        const pagination = this.getPagination();
+        if (pagination) {
+            pagination.totalCount = value;
+        }
     },
 
     /**
      * Returns the pagination object used by this data provider.
      * Note that you should call [[prepare()]] or [[getModels()]] first to get correct values
      * of [[Pagination.totalCount]] and [[Pagination.pageCount]].
-     * @returns {jii.data.Pagination|boolean} the pagination object. If this is false, it means the pagination is disabled.
+     * @returns {Jii.data.Pagination|boolean} the pagination object. If this is false, it means the pagination is disabled.
      */
     getPagination() {
         if (this._pagination === null) {
@@ -192,6 +244,8 @@ var DataProvider = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.
         } else {
             throw new InvalidParamException('Only Pagination instance, configuration object or false is allowed.');
         }
+
+        this._pagination.on(Pagination.EVENT_CHANGE, this._onPaginationChange.bind(this));
     },
 
     /**
@@ -218,7 +272,6 @@ var DataProvider = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.
      * @throws InvalidParamException
      */
     setSort(value) {
-
         if (_isObject(value)) {
             let config = {/*className: Sort*/}; // @todo Sort implementation
             if (this.id !== null) {
@@ -230,7 +283,69 @@ var DataProvider = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.
         } else {
             throw new InvalidParamException('Only Sort instance, configuration object or false is allowed.');
         }
-    }
+    },
+
+    _change(startIndex, toAdd, toRemove, unique, parentCallParams) {
+        if (parentCallParams) {
+            var pagination = this.getPagination();
+            if (pagination) {
+                toRemove.forEach(model => {
+                    let primaryKey = this._getPrimaryKey(model);
+                    var finedKey = _findKey(this._fetchedKeys, key => {
+                        return key === primaryKey;
+                    });
+                    if (finedKey) {
+                        delete this._fetchedKeys[finedKey];
+                    }
+
+                });
+
+                parentCallParams.toAdd.forEach((model, index) => {
+                    this._fetchedKeys[index + pagination.getOffset()] = this._getPrimaryKey(model);
+                });
+
+                this.refreshFilter();
+                return;
+            }
+        }
+
+        this.__super(startIndex, toAdd, toRemove, unique);
+    },
+
+    _onPaginationChange() {
+        this.refreshFilter();
+
+        if (this.autoFetch) {
+            this.fetch();
+        }
+    },
+
+    _filterModels() {
+        var pagination = this.getPagination();
+        if (pagination) {
+            if (!this.parent) {
+                throw new InvalidConfigException('DataProvider with pagination need parent collection.');
+            }
+
+            return pagination.getIndexes()
+                .map(i => {
+                    return this.parent._byId[this._fetchedKeys[i]] || null;
+                })
+                .filter(model => model !== null);
+        }
+
+        return this.__super();
+    },
+
+    /**
+     *
+     * @param {object} params
+     * @returns {Jii.model.CollectionEvent}
+     */
+    _createEvent(params) {
+        params.totalCount = this.getTotalCount();
+        return new DataProviderEvent(params);
+    },
 
 });
 

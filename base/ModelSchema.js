@@ -33,6 +33,10 @@ var ModelSchema = Jii.defineClass('Jii.base.ModelSchema', /** @lends Jii.base.Mo
          * @returns {Jii.base.ModelSchema}
          */
         createFromObject(obj) {
+            if (_isString(obj.primaryKey)) {
+                obj.primaryKey = [obj.primaryKey];
+            }
+
             _each(obj.columns, (column, name) => {
                 if (!(column instanceof ModelAttributeSchema)) {
                     if (_isString(column)) {

@@ -20,7 +20,6 @@ var _reduceRight = require('lodash/reduceRight');
 var _groupBy = require('lodash/groupBy');
 var _countBy = require('lodash/countBy');
 var _lastIndexOf = require('lodash/lastIndexOf');
-var _sortedIndex = require('lodash/sortedIndex');
 var _findIndex = require('lodash/findIndex');
 var _findLastIndex = require('lodash/findLastIndex');
 var _has = require('lodash/has');
@@ -41,6 +40,7 @@ var _drop = require('lodash/drop');
 var _shuffle = require('lodash/shuffle');
 var _sortBy = require('lodash/sortBy');
 var _without = require('lodash/without');
+var _extend = require('lodash/extend');
 var Component = require('jii/base/Component');
 
 /**
@@ -323,6 +323,19 @@ var Collection = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
      * Run filter
      */
     refreshFilter() {
+        var models = this._filterModels();
+
+        var diff = this._prepareDiff(models);
+        if (diff.add.length || diff.remove.length) {
+            this._change(0, diff.add, diff.remove, true);
+        }
+
+        _each(this._childCollections, childCollection => {
+            childCollection.refreshFilter();
+        });
+    },
+
+    _filterModels() {
         var models = this.parent ? this.parent.getModels() : this.getModels();
         if (this._filter) {
             // Optimize search by id
@@ -338,14 +351,7 @@ var Collection = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
             }
         }
 
-        var diff = this._prepareDiff(models);
-        if (diff.add.length || diff.remove.length) {
-            this._change(0, diff.add, diff.remove, true);
-        }
-
-        _each(this._childCollections, childCollection => {
-            childCollection.refreshFilter();
-        });
+        return models;
     },
 
     /**
@@ -409,6 +415,9 @@ var Collection = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
 
             // Revert changes
             // TODO
+
+            // Reset state
+            this._editedEvents = [];
         }
     },
 
@@ -559,14 +568,20 @@ var Collection = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
     /**
      *
      * @param {function|Jii.base.Query} [filter]
+     * @param {object} [params]
+     * @param {Jii.base.Collection} [className]
      * @returns {Jii.base.Collection}
      */
-    createChild(filter) {
-        var childCollection = new this.__static(null, {
+    createChild(filter = null, params = {}, className = null) {
+        className = className || this.__static;
+
+        var childCollection = new className(null, _extend({}, params, {
             modelClass: this.modelClass,
             parent: this
-        });
-        childCollection._change(0, this.getModels(), [], true);
+        }));
+        if (this._isFetched) {
+            childCollection._change(0, this.getModels(), [], true);
+        }
 
         this._childCollections.push(childCollection);
 
@@ -574,6 +589,17 @@ var Collection = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
             childCollection.setFilter(filter);
         }
         return childCollection;
+    },
+
+    /**
+     *
+     * @param {object} [params]
+     * @param {Jii.base.DataProvider} [className]
+     * @returns {Jii.base.Collection}
+     */
+    createDataProvider(params = {}, className = null) {
+        className = className || require('./DataProvider');
+        return this.createChild(null, params, className);
     },
 
     /**
@@ -594,8 +620,9 @@ var Collection = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
         };
     },
 
-    _change(startIndex, toAdd, toRemove, unique) {
+    _change(startIndex, toAdd, toRemove, unique, byParent) {
         unique = unique || false;
+        byParent = byParent || false;
 
         var isFirstUpdate = !this.isFetched();
 
@@ -604,7 +631,6 @@ var Collection = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
 
         var added = [];
         var removed = [];
-        var isSorted = false;
 
         // Remove
         _each(toRemove, data => {
@@ -614,15 +640,8 @@ var Collection = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
                     startIndex--;
                 }
 
-                removed.push(model);
-
-                // Array access
-                Array.prototype.splice.call(this, index, 1);
-
-                // By id
-                var ActiveRecord = require('./BaseActiveRecord');
-                if (model instanceof ActiveRecord) {
-                    delete this._byId[this._getPrimaryKey(model)];
+                if (this._remove(model, index)) {
+                    removed.push(model);
                 }
             });
         });
@@ -639,24 +658,15 @@ var Collection = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
             _each(models, model => {
                 // Check moving
                 if (existsModels.length > 0) {
-                    isSorted = true;
 
                     // Update model attributes
                     var Model = require('./Model');
                     if (model instanceof Model && _isObject(data) && !(data instanceof Model)) {
                         model.set(data);
                     }
-                } else {
+                } else if (this._add(model, startIndex)) {
                     added.push(model);
-
-                    // Array access
-                    Array.prototype.splice.call(this, startIndex++, 0, model);
-
-                    // By id
-                    var ActiveRecord = require('./BaseActiveRecord');
-                    if (model instanceof ActiveRecord) {
-                        this._byId[this._getPrimaryKey(model)] = model;
-                    }
+                    startIndex++;
                 }
             });
         });
@@ -679,7 +689,7 @@ var Collection = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
         this.beginEdit();
 
         // Trigger events
-        this._editedEvents.push(new CollectionEvent({
+        this._editedEvents.push(this._createEvent({
             isFetch: isFirstUpdate,
             added: added,
             removed: removed
@@ -687,7 +697,12 @@ var Collection = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
 
         // Change children
         _each(this._childCollections, childCollection => {
-            childCollection._change(startIndex, added, removed, true);
+            childCollection._change(startIndex, added, removed, true, {
+                startIndex: startIndex,
+                toAdd: toAdd,
+                toRemove: toRemove,
+                unique: unique,
+            });
         });
 
         // End
@@ -697,6 +712,41 @@ var Collection = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
             added: added,
             removed: removed
         };
+    },
+
+    _add(model, index) {
+        // Array access
+        Array.prototype.splice.call(this, index++, 0, model);
+
+        // By id
+        var ActiveRecord = require('./BaseActiveRecord');
+        if (model instanceof ActiveRecord) {
+            this._byId[this._getPrimaryKey(model)] = model;
+        }
+
+        return true;
+    },
+
+    _remove(model, index) {
+        // Array access
+        Array.prototype.splice.call(this, index, 1);
+
+        // By id
+        var ActiveRecord = require('./BaseActiveRecord');
+        if (model instanceof ActiveRecord) {
+            delete this._byId[this._getPrimaryKey(model)];
+        }
+
+        return true;
+    },
+
+    /**
+     *
+     * @param {object} params
+     * @returns {Jii.model.CollectionEvent}
+     */
+    _createEvent(params) {
+        return new CollectionEvent(params);
     },
 
     /**
@@ -723,7 +773,16 @@ var Collection = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
     _getPrimaryKey(data) {
         var ActiveRecord = require('./BaseActiveRecord');
         if (_isObject(data) && this.modelClass && !(data instanceof ActiveRecord)) {
-            data = this.createModel(data);
+            let keys = this.modelClass.primaryKey();
+            if (keys.length === 1) {
+                data = data[keys[0]];
+            } else {
+                let obj = {};
+                this.modelClass.primaryKey().forEach(attribute => {
+                    obj[attribute] = _has(data, attribute) ? data[attribute] : null;
+                });
+                data = obj;
+            }
         }
 
         if (data instanceof ActiveRecord) {

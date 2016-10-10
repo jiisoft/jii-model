@@ -1,6 +1,7 @@
 'use strict';
 
 var Jii = require('jii');
+var Component = require('jii/base/Component');
 var InvalidConfigException = require('jii/exceptions/InvalidConfigException');
 var _isObject = require('lodash/isObject');
 var _isEmpty = require('lodash/isEmpty');
@@ -8,12 +9,19 @@ var _isArray = require('lodash/isArray');
 
 /**
  * @class Jii.data.Pagination
+ * @extends Jii.base.Component
  */
-Jii.defineClass('Jii.data.Pagination', {
+var Pagination = Jii.defineClass('Jii.data.Pagination', /** @lends Jii.data.Pagination.prototype */{
 
-    __extends: 'Jii.base.Object',
+    __extends: Component,
 
-    __static: {
+    __static: /** @lends exports */{
+
+        /**
+         * @event Jii.data.Pagination#change
+         * @property {Jii.base.Event} event
+         */
+        EVENT_CHANGE: 'change',
 
         REL_SELF: 'self',
         LINK_NEXT: 'next',
@@ -111,7 +119,17 @@ Jii.defineClass('Jii.data.Pagination', {
      * @param {Jii.base.Context} value
      */
     setContext(value) {
-        this._context = value;
+        if (this._context !== value) {
+            this._context = value;
+
+            // Refresh values from query params
+            this._page = null;
+            this.getPage();
+            this._pageSize = null;
+            this.getPageSize();
+
+            this.trigger(this.__static.EVENT_CHANGE);
+        }
     },
 
     /**
@@ -132,7 +150,7 @@ Jii.defineClass('Jii.data.Pagination', {
         }
 
         let totalCount = Math.max(0, this.totalCount);
-        return ((totalCount + pageSize - 1) / pageSize);
+        return Math.floor((totalCount + pageSize - 1) / pageSize);
     },
 
     /**
@@ -140,12 +158,12 @@ Jii.defineClass('Jii.data.Pagination', {
      * @param {boolean} [recalculate] whether to recalculate the current page based on the page size and item count.
      * @returns {number} the zero-based current page number.
      */
-    getPage: function (recalculate) {
+    getPage(recalculate) {
         recalculate = recalculate || false;
 
         if (this._page === null || recalculate) {
             let page = this._getQueryParam(this.pageParam, 1) - 1;
-            this.setPage(page, true);
+            this._setPageInternal(page, true);
         }
 
         return this._page;
@@ -154,10 +172,44 @@ Jii.defineClass('Jii.data.Pagination', {
     /**
      * Sets the current page number.
      * @param {number} value the zero-based index of the current page.
-     * @param {boolean} validatePage whether to validate the page number. Note that in order
+     * @param {boolean} [validatePage] whether to validate the page number. Note that in order
      * to validate the page number, both [[validatePage]] and this parameter must be true.
      */
-    setPage: function (value, validatePage) {
+    setPage(value, validatePage = false) {
+        this._setPageInternal(value, validatePage);
+        this.trigger(this.__static.EVENT_CHANGE);
+    },
+
+    /**
+     * Returns the number of items per page.
+     * By default, this method will try to determine the page size by [[pageSizeParam]] in [[params]].
+     * If the page size cannot be determined this way, [[defaultPageSize]] will be returned.
+     * @returns {number} the number of items per page. If it is less than 1, it means the page size is infinite,
+     * and thus a single page contains all items.
+     * @see pageSizeLimit
+     */
+    getPageSize() {
+        if (this._pageSize === null) {
+            if (!this.pageSizeLimit || _isEmpty(this.pageSizeLimit)) {
+                this._setPageSizeInternal(this.defaultPageSize);
+            } else {
+                this._setPageSizeInternal(this._getQueryParam(this.pageSizeParam, this.defaultPageSize), true);
+            }
+        }
+
+        return this._pageSize;
+    },
+
+    /**
+     * @param {number} value the number of items per page.
+     * @param {boolean} [validatePageSize] whether to validate page size.
+     */
+    setPageSize(value, validatePageSize) {
+        this._setPageSizeInternal(value, validatePageSize);
+        this.trigger(this.__static.EVENT_CHANGE);
+    },
+
+    _setPageInternal(value, validatePage = false) {
         validatePage = validatePage || false;
 
         if (value === null) {
@@ -176,31 +228,7 @@ Jii.defineClass('Jii.data.Pagination', {
         }
     },
 
-    /**
-     * Returns the number of items per page.
-     * By default, this method will try to determine the page size by [[pageSizeParam]] in [[params]].
-     * If the page size cannot be determined this way, [[defaultPageSize]] will be returned.
-     * @returns {number} the number of items per page. If it is less than 1, it means the page size is infinite,
-     * and thus a single page contains all items.
-     * @see pageSizeLimit
-     */
-    getPageSize: function () {
-        if (this._pageSize === null) {
-            if (!this.pageSizeLimit || _isEmpty(this.pageSizeLimit)) {
-                this.setPageSize(this.defaultPageSize);
-            } else {
-                this.setPageSize(this._getQueryParam(this.pageSizeParam, this.defaultPageSize), true);
-            }
-        }
-
-        return this._pageSize;
-    },
-
-    /**
-     * @param {number} value the number of items per page.
-     * @param {boolean} [validatePageSize] whether to validate page size.
-     */
-    setPageSize: function (value, validatePageSize) {
+    _setPageSizeInternal(value, validatePageSize = false) {
         validatePageSize = validatePageSize || false;
 
         if (value === null) {
@@ -223,7 +251,7 @@ Jii.defineClass('Jii.data.Pagination', {
      * @see params
      * @see forcePageParam
      */
-    createUrl: function (page, pageSize = null, isAbsolute = false) {
+    createUrl(page, pageSize = null, isAbsolute = false) {
 
         if (this.params === null && this._context === null) {
             throw InvalidConfigException('Not found params and context in Pagination.');
@@ -249,15 +277,15 @@ Jii.defineClass('Jii.data.Pagination', {
 
         const urlManager = this.urlManager || Jii.app.urlManager;
         return isAbsolute ?
-            urlManager.createAbsoluteUrl([route, params]) :
-            urlManager.createUrl([route, params]);
+            urlManager.createAbsoluteUrl([route, params], this._context) :
+            urlManager.createUrl([route, params], this._context);
     },
 
     /**
      * @returns {number} the offset of the data. This may be used to set the
      * OFFSET value for a SQL statement for fetching the current page of data.
      */
-    getOffset: function () {
+    getOffset() {
         let pageSize = this.getPageSize();
         return pageSize < 1 ? 0 : this.getPage() * pageSize;
     },
@@ -267,9 +295,24 @@ Jii.defineClass('Jii.data.Pagination', {
      * LIMIT value for a SQL statement for fetching the current page of data.
      * Note that if the page size is infinite, a value -1 will be returned.
      */
-    getLimit: function () {
+    getLimit() {
         let pageSize = this.getPageSize();
         return pageSize < 1 ? -1 : pageSize;
+    },
+
+    /**
+     * @return {number[]}
+     */
+    getIndexes() {
+        let indexes = [];
+        let offset = this.getOffset();
+        let limit = this.getLimit();
+
+        for (let i = offset; i < offset + limit; i++) {
+            indexes.push(i);
+        }
+
+        return indexes;
     },
 
     /**
@@ -278,7 +321,7 @@ Jii.defineClass('Jii.data.Pagination', {
      * @returns {object} the links for navigational purpose. The array keys specify the purpose of the links (e.g. [[LINK_FIRST]]),
      * and the array values are the corresponding URLs.
      */
-    getLinks: function (isAbsolute) {
+    getLinks(isAbsolute) {
         isAbsolute = isAbsolute || false;
 
         let currentPage = this.getPage();
@@ -306,11 +349,13 @@ Jii.defineClass('Jii.data.Pagination', {
      * @param {number|string} defaultValue the value to be returned when the specified parameter does not exist in [[params]].
      * @returns {string} the parameter value
      */
-    _getQueryParam: function (name, defaultValue) {
+    _getQueryParam(name, defaultValue) {
         defaultValue = defaultValue || null;
 
-        let params = this.params || this._context.request ? this._context.request.get() : {};
+        let params = this.params || (this._context && this._context.request ? this._context.request.get() : {});
         return params[name] && !_isObject(params[name]) ? params[name] : defaultValue;
     }
 
 });
+
+module.exports = Pagination;
