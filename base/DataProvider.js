@@ -209,7 +209,7 @@ var DataProvider = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.
      * @returns {number} total number of possible data models.
      */
     getTotalCount() {
-        if (this.getPagination() === false) {
+        if (this._pagination === false) {
             return this.parent ? this.parent.getCount() : this.getCount();
         }
         return this._totalCount;
@@ -222,9 +222,8 @@ var DataProvider = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.
     setTotalCount(value) {
         this._totalCount = value;
 
-        const pagination = this.getPagination();
-        if (pagination) {
-            pagination.totalCount = value;
+        if (this._pagination) {
+            this._pagination.totalCount = value;
         }
     },
 
@@ -249,7 +248,10 @@ var DataProvider = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.
      */
     setPagination(value) {
         if (_isObject(value)) {
-            let config = {className: Pagination};
+            let config = {
+                className: Pagination,
+                totalCount: this.getTotalCount(),
+            };
             if (this.id !== null) {
                 config.pageParam = `${this.id}-page`;
                 config.pageSizeParam = `${this.id}-per-page`;
