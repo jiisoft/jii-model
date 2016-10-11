@@ -2,6 +2,7 @@
 
 var Jii = require('jii');
 var Article = require('../models/Article');
+var Pagination = require('../../data/Pagination');
 var Collection = require('jii-model/base/Collection');
 var InvalidParamException = require('jii/exceptions/InvalidParamException');
 var ChangeEvent = require('jii-model/model/ChangeEvent');
@@ -24,12 +25,12 @@ var DataProviderTest = Jii.defineClass('tests.unit.DataProviderTest', {
         test.strictEqual(collection.isFetched(), false);
 
         var dataProvider = collection.createDataProvider({
-            query: (page) => {
+            query: (pagination) => {
                 fetchCount++;
                 return new Promise(resolve => {
                     resolve({
                         totalCount: 14,
-                        models: this._generateData(page * 10, page === 0 ? 10 : 14)
+                        models: this._generateData(pagination.getPage() * 10, pagination.getPage() === 0 ? 10 : 14)
                     });
                 })
             },
@@ -100,6 +101,13 @@ var DataProviderTest = Jii.defineClass('tests.unit.DataProviderTest', {
 
             test.strictEqual(dataProvider.length, 4);
             test.strictEqual(fetchCount, 3);
+
+            dataProvider.getPagination().mode = Pagination.MODE_LOAD_MORE;
+            dataProvider.refreshFilter();
+
+            test.strictEqual(dataProvider.length, 14);
+            dataProvider.getPagination().setPage(0);
+            test.strictEqual(dataProvider.length, 5);
 
             test.done();
         });

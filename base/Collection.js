@@ -63,10 +63,10 @@ var Collection = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
         EVENT_ADD: 'add',
 
         /**
-         * @event Jii.base.Collection#change
+         * @event Jii.base.Collection#fetched
          * @property {Jii.model.CollectionEvent} event
          */
-        EVENT_FETCH: 'fetch',
+        EVENT_FETCHED: 'fetched',
 
         /**
          * @event Jii.base.Collection#change
@@ -443,7 +443,7 @@ var Collection = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
                         this.trigger(this.__static.EVENT_ADD, event);
                     }
                     if (event.isFetch) {
-                        this.trigger(this.__static.EVENT_FETCH, event);
+                        this.trigger(this.__static.EVENT_FETCHED, event);
                     }
                     if (event.removed.length > 0) {
                         this.trigger(this.__static.EVENT_REMOVE, event);
@@ -575,6 +575,9 @@ var Collection = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
     createChild(filter = null, params = {}, className = null) {
         className = className || this.__static;
 
+        var models = params.models || null;
+        delete params.models;
+
         var childCollection = new className(null, _extend({}, params, {
             modelClass: this.modelClass,
             parent: this
@@ -584,6 +587,9 @@ var Collection = Jii.defineClass('Jii.base.Collection', /** @lends Jii.base.Coll
         }
 
         this._childCollections.push(childCollection);
+        if (models) {
+            childCollection.setModels(models);
+        }
 
         if (filter) {
             childCollection.setFilter(filter);

@@ -100,28 +100,31 @@ var BaseActiveRecord = Jii.defineClass('Jii.base.BaseActiveRecord', /** @lends J
 		 */
 		EVENT_AFTER_DELETE: 'afterDelete',
 
-        _modelSchema: null,
+		_modelSchema: {},
 
-        /**
-         * @returns {{}}
-         */
-        modelSchema() {
-            return {};
-        },
+		/**
+		 * @returns {{}}
+		 */
+		modelSchema() {
+			return {};
+		},
 
-        /**
-         * @returns {Jii.sql.TableSchema}
-         */
-        getTableSchema() {
-            if (this._modelSchema === null) {
-                this._modelSchema = this.modelSchema();
+		/**
+		 * @returns {Jii.sql.TableSchema}
+		 */
+		getTableSchema() {
+			const className = this.className();
 
-                if (!(this._modelSchema instanceof ModelSchema)) {
-                    this._modelSchema = ModelSchema.createFromObject(this._modelSchema);
-                }
-            }
-            return this._modelSchema;
-        },
+			if (!this._modelSchema[className]) {
+				let schema = this.modelSchema();
+				if (!(schema instanceof ModelSchema)) {
+					schema = ModelSchema.createFromObject(schema);
+				}
+
+				this._modelSchema[className] = schema;
+			}
+			return this._modelSchema[className];
+		},
 
         tableName() {
             return null;

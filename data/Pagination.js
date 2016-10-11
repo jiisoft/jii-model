@@ -29,6 +29,9 @@ var Pagination = Jii.defineClass('Jii.data.Pagination', /** @lends Jii.data.Pagi
         LINK_FIRST: 'first',
         LINK_LAST: 'last',
 
+        MODE_PAGES: 'pages',
+        MODE_LOAD_MORE: 'load_more',
+
     },
 
     /**
@@ -97,6 +100,11 @@ var Pagination = Jii.defineClass('Jii.data.Pagination', /** @lends Jii.data.Pagi
      * the maximal page size. If this is false, it means [[pageSize]] should always return the value of [[defaultPageSize]].
      */
     pageSizeLimit: [1, 50],
+
+    /**
+     * @type {string}
+     */
+    mode: 'pages',
 
     /**
      * @type {number|null} number of items on each page.
@@ -305,11 +313,13 @@ var Pagination = Jii.defineClass('Jii.data.Pagination', /** @lends Jii.data.Pagi
      */
     getIndexes() {
         let indexes = [];
-        let offset = this.getOffset();
-        let limit = this.getLimit();
+        let offset = this.mode === this.__static.MODE_PAGES ? this.getOffset() : 0;
+        let limit = this.mode === this.__static.MODE_PAGES ? this.getLimit() : (this.getPage() + 1) * this.getLimit();
 
-        for (let i = offset; i < offset + limit; i++) {
-            indexes.push(i);
+        if (offset >= 0 && limit > 0) {
+            for (let i = offset; i < offset + limit; i++) {
+                indexes.push(i);
+            }
         }
 
         return indexes;
@@ -340,6 +350,13 @@ var Pagination = Jii.defineClass('Jii.data.Pagination', /** @lends Jii.data.Pagi
         }
 
         return links;
+    },
+
+    toJSON() {
+        return {
+            page: this.getPage(),
+            pageSize: this.getPageSize(),
+        };
     },
 
     /**

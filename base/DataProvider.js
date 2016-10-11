@@ -10,6 +10,7 @@ var InvalidConfigException = require('jii/exceptions/InvalidConfigException');
 var InvalidParamException = require('jii/exceptions/InvalidParamException');
 var Collection = require('./Collection');
 var Pagination = require('../data/Pagination');
+var FetchEvent = require('../model/FetchEvent');
 var DataProviderEvent = require('../model/DataProviderEvent');
 var _isNumber = require('lodash/isNumber');
 var _isArray = require('lodash/isArray');
@@ -30,6 +31,24 @@ var DataProvider = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.
 
     __static: /** @lends Jii.base.DataProvider */{
 
+        /**
+         * @event Jii.base.DataProvider#before_fetch
+         * @property {Jii.model.FetchEvent} event
+         */
+        EVENT_BEFORE_FETCH: 'before_fetch',
+
+        /**
+         * @event Jii.base.DataProvider#after_fetch
+         * @property {Jii.model.FetchEvent} event
+         */
+        EVENT_AFTER_FETCH: 'after_fetch',
+
+        /**
+         * @event Jii.base.DataProvider#loading
+         * @property {Jii.model.FetchEvent} event
+         */
+        EVENT_LOADING: 'loading',
+
         FETCH_MODE_SET: 'set',
         FETCH_MODE_RESET: 'reset',
 
@@ -46,11 +65,6 @@ var DataProvider = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.
      * @type {function|Jii.base.Query}
      */
     query: null,
-
-    /**
-     * @type {string}
-     */
-    fetchMode: 'set',
 
     /**
      * @type {boolean}
@@ -105,17 +119,20 @@ var DataProvider = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.
             return Promise.resolve(false);
         }
 
+        this.trigger(this.__static.EVENT_BEFORE_FETCH, new FetchEvent({
+            isLoading: true
+        }));
+        this.trigger(this.__static.EVENT_LOADING, new FetchEvent({
+            isLoading: true
+        }));
+
         this._fetchCallbacks = [];
         return Promise.resolve()
             .then(() => {
 
                 // Query as function
                 if (_isFunction(this.query)) {
-                    const pagination = this.getPagination();
-                    return this.query(
-                        pagination ? pagination.getPage() : null,
-                        pagination ? pagination.getPageSize() : null
-                    );
+                    return this.query(this.getPagination());
                 }
 
                 // TODO Query, REST, ...
@@ -139,19 +156,11 @@ var DataProvider = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.
 
                 // No changes, but fetch
                 if (!this.isFetched() && data.models.length === 0 && this.length === 0) {
-                    this.trigger(this.__static.EVENT_FETCH, this._createEvent({
+                    this.trigger(this.__static.EVENT_FETCHED, this._createEvent({
                         isFetch: true
                     }));
                 } else {
-                    switch(this.fetchMode) {
-                        case this.__static.FETCH_MODE_SET:
-                            this.setModels(data.models);
-                            break;
-
-                        case this.__static.FETCH_MODE_RESET:
-                            this.reset(data.models);
-                            break;
-                    }
+                    this.setModels(data.models);
                 }
 
                 // Resolve queue promises after current
@@ -162,6 +171,13 @@ var DataProvider = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.
                         callback(data.models);
                     });
                 });
+
+                this.trigger(this.__static.EVENT_AFTER_FETCH, new FetchEvent({
+                    isLoading: false
+                }));
+                this.trigger(this.__static.EVENT_LOADING, new FetchEvent({
+                    isLoading: false
+                }));
 
                 return data;
             });
