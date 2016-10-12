@@ -9,11 +9,11 @@ var _each = require('lodash/each');
 var _extend = require('lodash/extend');
 var ApplicationException = require('jii/exceptions/ApplicationException');
 var InvalidParamException = require('jii/exceptions/InvalidParamException');
-var ChangeAttributeEvent = require('jii-model/model/ChangeAttributeEvent');
-var ChangeEvent = require('jii-model/model/ChangeEvent');
-var Model = require('jii-model/base/Model');
-var Collection = require('jii-model/base/Collection');
-var CollectionEvent = require('jii-model/model/CollectionEvent');
+var ChangeAttributeEvent = require('../../model/ChangeAttributeEvent');
+var ChangeEvent = require('../../model/ChangeEvent');
+var Model = require('../../base/Model');
+var Collection = require('../../base/Collection');
+var CollectionEvent = require('../../model/CollectionEvent');
 var FilterBuilder = require('jii-ar-sql/FilterBuilder');
 var UnitTest = require('jii/base/UnitTest');
 

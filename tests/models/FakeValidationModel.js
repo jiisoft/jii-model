@@ -1,7 +1,7 @@
 'use strict';
 
 var Jii = require('jii');
-var Model = require('jii-model/base/Model');
+var Model = require('../../base/Model');
 
 /**
  * @class tests.unit.models.FakeValidationModel

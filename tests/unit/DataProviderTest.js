@@ -3,10 +3,10 @@
 var Jii = require('jii');
 var Article = require('../models/Article');
 var Pagination = require('../../data/Pagination');
-var Collection = require('jii-model/base/Collection');
+var Collection = require('../../base/Collection');
 var InvalidParamException = require('jii/exceptions/InvalidParamException');
-var ChangeEvent = require('jii-model/model/ChangeEvent');
-var Query = require('jii-model/base/Query');
+var ChangeEvent = require('../../model/ChangeEvent');
+var Query = require('../../base/Query');
 var UnitTest = require('jii/base/UnitTest');
 
 require('./bootstrap');

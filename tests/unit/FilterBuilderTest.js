@@ -2,7 +2,7 @@
 
 var Jii = require('jii');
 var FilterBuilder = require('jii-ar-sql/FilterBuilder');
-var Query = require('jii-model/base/Query');
+var Query = require('../../base/Query');
 var Collection = require('../../base/Collection');
 var Article = require('../models/Article');
 var UnitTest = require('jii/base/UnitTest');

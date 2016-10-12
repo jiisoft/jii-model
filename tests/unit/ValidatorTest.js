@@ -2,20 +2,20 @@
 
 var Jii = require('jii');
 var FakeValidationModel = require('../models/FakeValidationModel');
-var BooleanValidator = require('jii-model/validators/BooleanValidator');
-var CompareValidator = require('jii-model/validators/CompareValidator');
-var DateValidator = require('jii-model/validators/DateValidator');
-var DefaultValueValidator = require('jii-model/validators/DefaultValueValidator');
-var EmailValidator = require('jii-model/validators/EmailValidator');
-var FilterValidator = require('jii-model/validators/FilterValidator');
-var InlineValidator = require('jii-model/validators/InlineValidator');
-var RequiredValidator = require('jii-model/validators/RequiredValidator');
-var SafeValidator = require('jii-model/validators/SafeValidator');
-var StringValidator = require('jii-model/validators/StringValidator');
-var UrlValidator = require('jii-model/validators/UrlValidator');
-var NumberValidator = require('jii-model/validators/NumberValidator');
-var RangeValidator = require('jii-model/validators/RangeValidator');
-var RegularExpressionValidator = require('jii-model/validators/RegularExpressionValidator');
+var BooleanValidator = require('../../validators/BooleanValidator');
+var CompareValidator = require('../../validators/CompareValidator');
+var DateValidator = require('../../validators/DateValidator');
+var DefaultValueValidator = require('../../validators/DefaultValueValidator');
+var EmailValidator = require('../../validators/EmailValidator');
+var FilterValidator = require('../../validators/FilterValidator');
+var InlineValidator = require('../../validators/InlineValidator');
+var RequiredValidator = require('../../validators/RequiredValidator');
+var SafeValidator = require('../../validators/SafeValidator');
+var StringValidator = require('../../validators/StringValidator');
+var UrlValidator = require('../../validators/UrlValidator');
+var NumberValidator = require('../../validators/NumberValidator');
+var RangeValidator = require('../../validators/RangeValidator');
+var RegularExpressionValidator = require('../../validators/RegularExpressionValidator');
 var UnitTest = require('jii/base/UnitTest');
 
 require('./bootstrap');

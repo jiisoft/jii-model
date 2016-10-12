@@ -1,7 +1,7 @@
 'use strict';
 
 var Jii = require('jii');
-var BaseActiveRecord = require('jii-model/base/BaseActiveRecord');
+var BaseActiveRecord = require('../../base/BaseActiveRecord');
 
 /**
  * @class tests.unit.models.ActiveRecord

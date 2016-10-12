@@ -6,11 +6,11 @@ var User = require('../models/User');
 var _each = require('lodash/each');
 var _extend = require('lodash/extend');
 var _identity = require('lodash/identity');
-var Collection = require('jii-model/base/Collection');
+var Collection = require('../../base/Collection');
 var InvalidParamException = require('jii/exceptions/InvalidParamException');
-var ChangeEvent = require('jii-model/model/ChangeEvent');
-var CollectionEvent = require('jii-model/model/CollectionEvent');
-var Query = require('jii-model/base/Query');
+var ChangeEvent = require('../../model/ChangeEvent');
+var CollectionEvent = require('../../model/CollectionEvent');
+var Query = require('../../base/Query');
 var FilterBuilder = require('jii-ar-sql/FilterBuilder');
 var UnitTest = require('jii/base/UnitTest');
 

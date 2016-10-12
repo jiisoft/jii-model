@@ -7,7 +7,7 @@
 
 var Jii = require('jii');
 var Query = require('./Query');
-var Model = require('jii-model/base/Model');
+var Model = require('./Model');
 var InvalidConfigException = require('jii/exceptions/InvalidConfigException');
 var _isEmpty = require('lodash/isEmpty');
 var _isString = require('lodash/isString');
