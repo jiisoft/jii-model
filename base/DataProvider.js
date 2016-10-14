@@ -49,9 +49,6 @@ var DataProvider = Jii.defineClass('Jii.base.DataProvider', /** @lends Jii.base.
          */
         EVENT_LOADING: 'loading',
 
-        FETCH_MODE_SET: 'set',
-        FETCH_MODE_RESET: 'reset',
-
     },
 
     /**
